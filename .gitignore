@@ -15,4 +15,3 @@ tests/Test.ADAL.WinRT.Unit/obj/
 tests/Test.ADAL.WinRT.Unit/AppPackages/
 tests/Test.ADAL.WinRT/obj/
 TestResults/
-!.nuget/NuGet.exe
