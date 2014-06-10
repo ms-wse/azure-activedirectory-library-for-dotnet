@@ -17,11 +17,9 @@
 //----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -139,9 +137,14 @@ namespace Test.ADAL.Common
             var token = new System.IdentityModel.Tokens.JwtSecurityToken(result.AccessToken);
             foreach (var claim in token.Claims)
             {
+                if (claim.Type == "oid")
+                {
+                    Verify.AreEqual(result.UserInfo.UniqueId, claim.Value);
+                }
+
                 if (claim.Type == "upn")
                 {
-                    Verify.AreEqual(result.UserInfo.UserId, claim.Value);
+                    Verify.AreEqual(result.UserInfo.DisplayableId, claim.Value);
                 }
             }
         }

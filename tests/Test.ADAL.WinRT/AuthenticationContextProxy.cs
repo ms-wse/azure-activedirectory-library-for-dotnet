@@ -16,15 +16,16 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Automation;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Test.ADAL.WinRT;
+
 namespace Test.ADAL.Common
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows.Automation;
-    using Test.ADAL.WinRT;
-
     public enum PageType
     {
         Dashboard,
@@ -115,7 +116,7 @@ namespace Test.ADAL.Common
         {
             return await AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCUP,
-                new CommandArguments { Resource = resource, ClientId = clientId, UserId = credential.UserId, Password = credential.Password });
+                new CommandArguments { Resource = resource, ClientId = clientId, UserName = credential.UserId, Password = credential.Password });
         }
 
         public AuthenticationResultProxy AcquireToken(string resource, string clientId)
@@ -130,18 +131,23 @@ namespace Test.ADAL.Common
                 new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri }));
         }
 
-        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, string userId)
+        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, UserIdentifier userId)
         {
             return RunAsyncTask(AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCRU,
-                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, UserId = userId }));
+                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri,
+                                       UserName = (userId != null) ? userId.Id : null
+                }));
         }
 
-        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, string userId, string extraQueryParameters)
+        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, UserIdentifier userId, string extraQueryParameters)
         {
             return RunAsyncTask(AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCRUX,
-                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, UserId = userId, Extra = extraQueryParameters }));
+                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri,
+                                       UserName = (userId != null) ? userId.Id : null,
+                                       Extra = extraQueryParameters
+                }));
         }
 
         public AuthenticationResultProxy AcquireToken(string resource, string clientId, PromptBehaviorProxy promptBehavior)
@@ -158,11 +164,12 @@ namespace Test.ADAL.Common
                 new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, PromptBehavior = promptBehavior }));
         }
 
-        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, PromptBehaviorProxy promptBehavior, string userId)
+        public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, UserIdentifier userId, PromptBehaviorProxy promptBehavior)
         {
             return RunAsyncTask(AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCRPU,
-                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, PromptBehavior = promptBehavior, UserId = userId }));
+                new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, PromptBehavior = promptBehavior,
+                                       UserName = (userId != null) ? userId.Id : null }));
         }
 
         public async Task<AuthenticationResultProxy> AcquireTokenByRefreshTokenAsync(string refreshToken, string clientId)

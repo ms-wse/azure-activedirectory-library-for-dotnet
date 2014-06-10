@@ -229,6 +229,15 @@ namespace Test.ADAL.NET.Unit
             CommonUnitTests.AdalIdTest();
         }
 
+
+        [TestMethod]
+        [TestCategory("AdalDotNetUnit")]
+        [Description("Test to verify forms auth parameters.")]
+        public void IncludeFormsAuthParamsTest()
+        {
+            Assert.IsFalse(OAuth2Request.IncludeFormsAuthParams());
+        }
+
         private static void RunAuthenticationParametersPositive(string authenticateHeader, string expectedAuthority, string excepectedResource)
         {
             AuthenticationParameters parameters = AuthenticationParameters.CreateFromResponseAuthenticateHeader(authenticateHeader);

@@ -18,9 +18,11 @@
 
 using System;
 using System.ComponentModel;
+using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
@@ -46,6 +48,27 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public static string PlatformSpecificToLower(this string input)
         {
             return input.ToLower(CultureInfo.InvariantCulture);
+        }
+
+        public static bool IsDomainJoined()
+        {
+            bool returnValue = true;
+            try
+            {
+                Domain.GetComputerDomain();
+            }
+            catch (ActiveDirectoryObjectNotFoundException)
+            {
+                //if the machine is not domain joined or the request times out, this exception is thrown.
+                returnValue = false;
+            }
+            return returnValue;
+        }
+
+        public static bool IsUserLocal()
+        {
+            string prefix = WindowsIdentity.GetCurrent().Name.Split('\\')[0].ToUpperInvariant();
+            return prefix.Equals(Environment.MachineName.ToUpperInvariant());
         }
 
         public static string GetUserPrincipalName()
