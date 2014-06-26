@@ -1,0 +1,1 @@
+C:\Users\kpanwar.REDMOND\Documents\GitHub\ADAL-WinPhone\tests\Test.ADAL.WinPhone.RealWorldApp\Test.ADAL.WinPhone.RealWorldApp.csproj;x86

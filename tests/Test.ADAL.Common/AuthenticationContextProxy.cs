@@ -16,38 +16,32 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
+using System.Threading.Tasks;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Test.ADAL.Common
 {    
     internal partial class AuthenticationContextProxy
     {
         private const string FixedCorrelationId = "2ddbba59-1a04-43fb-b363-7fb0ae785030";
-        private readonly AuthenticationContext context;
+        private AuthenticationContext context;
 
-        public AuthenticationContextProxy(string authority)
+        public async static Task<AuthenticationContextProxy> CreateProxyAsync(string authority)
         {
-            this.context = new AuthenticationContext(authority);
-            this.context.CorrelationId = new Guid(FixedCorrelationId);
+            AuthenticationContextProxy proxy = new AuthenticationContextProxy();
+            proxy.context = AuthenticationContext.CreateAsync(authority).GetResults();
+            proxy.context.CorrelationId = new Guid(FixedCorrelationId);
+            return proxy;
         }
 
-        public AuthenticationContextProxy(string authority, bool validateAuthority)
+        public async static Task<AuthenticationContextProxy> CreateProxyAsync(string authority, bool validateAuthority)
         {
-            this.context = new AuthenticationContext(authority, validateAuthority);
-            this.context.CorrelationId = new Guid(FixedCorrelationId);
-        }
-        internal void VerifySingleItemInCache(AuthenticationResultProxy result, StsType stsType)
-        {
-            List<TokenCacheItem> items = this.context.TokenCache.ReadItems().ToList();
-            Verify.AreEqual(1, items.Count);
-            Verify.AreEqual(result.AccessToken, items[0].AccessToken);
-            Verify.AreEqual(result.RefreshToken, items[0].RefreshToken);
-            Verify.AreEqual(result.IdToken, items[0].IdToken);
-            Verify.IsTrue(stsType == StsType.ADFS || items[0].IdToken != null);
+            AuthenticationContextProxy proxy = new AuthenticationContextProxy();
+            proxy.context = AuthenticationContext.CreateAsync(authority, validateAuthority).GetResults();
+            proxy.context.CorrelationId = new Guid(FixedCorrelationId);
+            return proxy;
         }
     }
 }

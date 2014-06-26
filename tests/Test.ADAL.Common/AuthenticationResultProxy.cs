@@ -17,35 +17,24 @@
 //----------------------------------------------------------------------
 
 using System;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Test.ADAL.Common
 {
+    using System.IO;
+    using System.Runtime.Serialization;
+    using System.Runtime.Serialization.Json;
+
     internal enum TokenCacheStoreType
     {
         Null,
         InMemory
     }
 
-    internal enum PromptBehaviorProxy
-    {
-        NotSpecified,
-        Always,
-        Auto,
-        AccessCodeOnly,
-        Never,
-        RefreshSession
-    }
-
     internal enum AuthenticationStatusProxy
     {
-        Success = 0,
-        ClientError = -1,
-        ServiceError = -2
+        Succeeded = 0,
+        Failed = -1,
     }
 
     [DataContract]
@@ -61,16 +50,13 @@ namespace Test.ADAL.Common
         public string RefreshToken { get; set; }
 
         [DataMember]
-        public string IdToken { get; set; }
-
-        [DataMember]
         public DateTimeOffset ExpiresOn { get; set; }
 
         [DataMember]
         public string TenantId { get; set; }
 
         [DataMember]
-        public UserInfo UserInfo { get; set; }
+        public UserInfoProxy UserInfo { get; set; }
 
         [DataMember]
         public bool IsMultipleResourceRefreshToken { get; set; }
@@ -92,7 +78,7 @@ namespace Test.ADAL.Common
 
         public Exception Exception { get; set; }
 
-        public int ExceptionStatusCode { get; set; }
+        public int ExceptionInnerStatusCode { get; set; }
 
         internal static AuthenticationResultProxy Deserialize(string obj)
         {

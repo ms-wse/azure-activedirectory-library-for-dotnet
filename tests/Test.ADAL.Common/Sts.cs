@@ -16,17 +16,23 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
-using System;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-
 namespace Test.ADAL.Common
 {
+    using System;
+
     public enum StsType
     {
         Unknown,
         ADFS,
         AAD,
         AADFederatedWithADFS3
+    }
+
+    public enum StsState
+    {
+        Created,
+        Started,
+        Stopped
     }
 
     public static class StsFactory
@@ -72,6 +78,7 @@ namespace Test.ADAL.Common
         public Sts()
         {
             this.Type = StsType.Unknown;
+            this.State = StsState.Created;
             this.ValidDefaultRedirectUri = new Uri("https://non_existing_uri.com/");
             this.InvalidExistingRedirectUri = new Uri("https://skydrive.live.com/");
             this.InvalidNonExistingRedirectUri = new Uri("https://invalid_non_existing_uri.com/");
@@ -84,6 +91,10 @@ namespace Test.ADAL.Common
         public StsType Type { get; protected set; }
 
         public bool ValidateAuthority { get; protected set; }
+
+        public string CustomTrustedHost { get; protected set; }
+
+        public string MetadataEndpoint { get; protected set; }
 
         public string Authority { get; protected set; }
 
@@ -119,29 +130,15 @@ namespace Test.ADAL.Common
 
         public Uri ValidRedirectUriForConfidentialClient { get; set; }
 
-        public string ValidUserName { get; protected set; }
+        public string ValidUserId { get; protected set; }
 
-        public UserIdentifier ValidUserId
-        {
-            get
-            {
-                return new UserIdentifier(ValidUserName, UserIdentifierType.OptionalDisplayableId);
-            }
-        }
-
-        public string ValidUserName2 { get; protected set; }
-
-        public UserIdentifier ValidRequiredUserId2
-        {
-            get
-            {
-                return new UserIdentifier(ValidUserName2, UserIdentifierType.RequiredDisplayableId);
-            }
-        }
+        public string ValidUserId2 { get; protected set; }
 
         public string ValidPassword { get; set; }
 
         public string ValidPassword2 { get; set; }
+
+        public StsState State { get; private set; }
 
         public string InvalidResource { get; protected set; }
 
@@ -161,41 +158,47 @@ namespace Test.ADAL.Common
 
         public string InvalidConfidentialClientCertificatePassword { get; set; }
 
-        public string InvalidUserName 
+        public string InvalidUserId 
         { 
-            get { return this.ValidUserName + "x"; } 
+            get { return this.ValidUserId + "x"; } 
         }
 
-        public UserIdentifier InvalidRequiredUserId
-        {
-            get
-            {
-                return new UserIdentifier(InvalidUserName, UserIdentifierType.RequiredDisplayableId);
-            }
-        }
+        public bool StoreProvisioned { get; set; }
 
         public string ValidNonExistentRedirectUriClientId { get; set; }
+
+        public virtual void Start()
+        {
+            this.State = StsState.Started;
+        }
     }
 
     class AadSts : Sts
     {
+        public const string UserPuid = "1234";
+        public const string FederatedUserPuid = "5678";
+        public const string UserGroupName = "AAL Test";
+
         public AadSts()
         {
             this.InvalidAuthority = "https://invalid_address.com/path";
             this.InvalidClientId = "87002806-c87a-41cd-896b-84ca5690d29e";
             this.InvalidResource = "00000003-0000-0ff1-ce00-000000000001";
+            this.MetadataEndpoint = null;   // TODO: This is to tempoarily disable metadata fetch for AAD
             this.ValidateAuthority = true;
             this.ValidClientId = "87002806-c87a-41cd-896b-84ca5690d29f";
             this.ValidExistingRedirectUri = new Uri("https://login.live.com/");
             this.ValidExpiresIn = 28800;
             this.ValidNonExistingRedirectUri = new Uri("https://non_existing_uri.com/");
-            this.ValidLoggedInFederatedUserName = "dummy\\dummy";
+            this.ValidLoggedInFederatedUserName = /*System.Security.Principal.WindowsIdentity.GetCurrent().Name*/"dummy\\dummy";
             string[] segments = this.ValidLoggedInFederatedUserName.Split(new char[] { '\\' });
             this.ValidLoggedInFederatedUserId = string.Format("{0}@microsoft.com", (segments.Length == 2) ? segments[1] : segments[0]);
 
             this.TenantName = "aaltests.onmicrosoft.com";
             this.Authority = string.Format("https://login.windows.net/{0}", this.TenantName);
             this.TenantlessAuthority = "https://login.windows.net/Common";
+            this.CustomTrustedHost = null;
+            this.StoreProvisioned = true;
             this.Type = StsType.AAD;
             this.ValidClientId = "e70b115e-ac0a-4823-85da-8f4b7b4f00e6";    // Test Client App2
             this.ValidNonExistentRedirectUriClientId = this.ValidClientId;
@@ -203,8 +206,8 @@ namespace Test.ADAL.Common
             this.ValidConfidentialClientId = "9083ccb8-8a46-43e7-8439-1d696df984ae";
             this.ValidConfidentialClientSecret = "client_secret";
             this.ValidWinRTClientId = "786067bc-40cc-4171-be40-a73b2d05a461";
-            this.ValidUserName = "admin@aaltests.onmicrosoft.com";
-            this.ValidUserName2 = "user@aaltests.onmicrosoft.com";
+            this.ValidUserId = "admin@aaltests.onmicrosoft.com";
+            this.ValidUserId2 = "user@aaltests.onmicrosoft.com";
             this.ValidDefaultRedirectUri = new Uri("https://non_existing_uri.com/");
             this.ValidExistingRedirectUri = new Uri("https://login.live.com/");
             this.ValidRedirectUriForConfidentialClient = new Uri("https://non_existing_uri_for_confidential_client.com/");
@@ -222,9 +225,12 @@ namespace Test.ADAL.Common
         public AdfsSts()
         {
             this.Authority = "https://fs.bahush.info/adfs";
+            this.CustomTrustedHost = null;
             this.InvalidAuthority = "https://invalid_address.com/adfs";
             this.InvalidClientId = "DE25CE3A-B772-4E6A-B431-96DCB5E7E558";
             this.InvalidResource = "urn:msft:ad:test:oauth:teamdashboardx";
+            this.MetadataEndpoint = null;
+            this.StoreProvisioned = true;
             this.ValidConfidentialClientSecret = "client_secret";
             this.Type = StsType.ADFS;
             this.ValidateAuthority = false;
@@ -236,7 +242,7 @@ namespace Test.ADAL.Common
             this.ValidNonExistingRedirectUri = new Uri("https://non_existing_uri.com/");
             this.ValidDefaultRedirectUri = new Uri("https://login.live.com/");
             this.ValidExpiresIn = 3600;
-            this.ValidUserName = @"bahush.info\test";
+            this.ValidUserId = @"bahush.info\test";
             this.ValidConfidentialClientId = this.ValidClientId;
             this.ValidRedirectUriForConfidentialClient = this.ValidExistingRedirectUri;
             this.ValidPassword = "<REPLACE>";
@@ -259,7 +265,7 @@ namespace Test.ADAL.Common
             this.ValidNonExistingRedirectUri = new Uri("https://DontApply.com");
             this.ValidDefaultRedirectUri = new Uri("https://login.live.com/");
             this.ValidExpiresIn = 25000;
-            this.ValidUserName = @"test@bahush.info";
+            this.ValidUserId = @"test@bahush.info";
             this.ValidConfidentialClientId = this.ValidClientId;
             this.ValidRedirectUriForConfidentialClient = this.ValidExistingRedirectUri;
             this.ValidPassword = "<REPLACE>";

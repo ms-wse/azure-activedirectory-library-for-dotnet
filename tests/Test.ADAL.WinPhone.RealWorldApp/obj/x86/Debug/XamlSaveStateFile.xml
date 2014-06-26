@@ -1,0 +1,6 @@
+<XamlCompilerSaveState>
+  <ReferenceAssemblyList>
+    <LocalAssembly PathName="c:\users\kpanwar.redmond\documents\github\adal-winphone\tests\test.adal.winphone.realworldapp\obj\x86\debug\intermediatexaml\test.adal.winphone.realworldapp.exe" HashGuid="0fa1045d-a446-7491-7068-32712ee57ee7" />
+    <ReferenceAssembly PathName="c:\users\kpanwar.redmond\documents\github\adal-winphone\packages\microsoft.identitymodel.clients.activedirectory.2.6.2-alpha\lib\wpa81\microsoft.identitymodel.clients.activedirectory.winmd" HashGuid="6e7dd662-dd44-0eba-8748-213f5e3621a6" />
+  </ReferenceAssemblyList>
+</XamlCompilerSaveState>

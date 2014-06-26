@@ -16,12 +16,12 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Test.ADAL.Common
 {
@@ -44,13 +44,20 @@ namespace Test.ADAL.Common
 
         public static void StringToStream(string str, Stream stream)
         {
-            using (StreamWriter sw = new StreamWriter(stream, Encoding.GetEncoding("Windows-1252"), 10000, true))
+            try
             {
-                sw.Write(str);
-                sw.Flush();
-            }
+                using (StreamWriter sw = new StreamWriter(stream, Encoding.GetEncoding("iso-8859-1"), 10000, true))
+                {
+                    sw.Write(str);
+                    sw.Flush();
+                }
 
-            stream.Seek(0, SeekOrigin.Begin);
+                stream.Seek(0, SeekOrigin.Begin);
+            }
+            catch (Exception e)
+            {
+                
+            }
         }
 
         public static WebException DeserializeWebException(string str)
@@ -77,12 +84,6 @@ namespace Test.ADAL.Common
             this.responseBody = dictionary["Body"];
             this.StatusCode = (HttpStatusCode)Enum.Parse(typeof(HttpStatusCode), dictionary["StatusCode"]);
             this.headers = new WebHeaderCollection();
-#if !TEST_ADAL_WINRT
-            if (dictionary.ContainsKey("WWW-AuthenticateHeader"))
-            {
-                this.headers.Add("WWW-Authenticate", dictionary["WWW-AuthenticateHeader"]);
-            }
-#endif
         }
 
         public HttpStatusCode StatusCode { get; private set; }

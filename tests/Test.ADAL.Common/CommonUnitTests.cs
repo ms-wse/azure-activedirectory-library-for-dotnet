@@ -16,6 +16,7 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
+using System.Net;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Test.ADAL.Common
@@ -41,13 +42,8 @@ namespace Test.ADAL.Common
             Verify.IsNotNull(request.Headers[AdalIdParameter.Product]);
             Verify.IsNotNull(request.Headers[AdalIdParameter.Version]);
             Verify.IsNotNull(request.Headers[AdalIdParameter.CpuPlatform]);
-#if TEST_ADAL_WINRT
             Verify.IsNull(request.Headers[AdalIdParameter.OS]);
             Verify.IsNotNull(request.Headers[AdalIdParameter.DeviceModel]);
-#else
-            Verify.IsNotNull(request.Headers[AdalIdParameter.OS]);
-            Verify.IsNull(request.Headers[AdalIdParameter.DeviceModel]);
-#endif
 
             RequestParameters parameters = new RequestParameters();
             AdalIdHelper.AddAsQueryParameters(parameters);
@@ -56,13 +52,8 @@ namespace Test.ADAL.Common
             Verify.IsNotNull(parameters[AdalIdParameter.Product]);
             Verify.IsNotNull(parameters[AdalIdParameter.Version]);
             Verify.IsNotNull(parameters[AdalIdParameter.CpuPlatform]);
-#if TEST_ADAL_WINRT
             Verify.IsFalse(parameters.ContainsKey(AdalIdParameter.OS));
             Verify.IsNotNull(parameters[AdalIdParameter.DeviceModel]);
-#else
-            Verify.IsNotNull(parameters[AdalIdParameter.OS]);
-            Verify.IsFalse(parameters.ContainsKey(AdalIdParameter.DeviceModel));
-#endif
         }
     }
 }

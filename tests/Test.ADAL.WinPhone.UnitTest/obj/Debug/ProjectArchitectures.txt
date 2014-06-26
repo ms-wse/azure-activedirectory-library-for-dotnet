@@ -1,0 +1,2 @@
+C:\Users\kpanwar.REDMOND\Documents\GitHub\ADAL-WinPhone\src\ADAL.WinPhone\ADAL.WinPhone.csproj;neutral
+C:\Users\kpanwar.REDMOND\Documents\GitHub\ADAL-WinPhone\tests\Test.ADAL.WinPhone.UnitTest\Test.ADAL.WinPhone.UnitTest.csproj;neutral

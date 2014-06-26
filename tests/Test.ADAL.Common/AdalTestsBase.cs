@@ -19,10 +19,6 @@
 using System;
 using System.Collections.Generic;
 
-#if !TEST_ADAL_WINRT
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-#endif
-
 namespace Test.ADAL.Common
 {
     public abstract class AdalTestsBase
@@ -35,15 +31,6 @@ namespace Test.ADAL.Common
         public static Dictionary<StsType, Sts> StsDictionary { get; private set; }
 
         protected Sts Sts { get; set; }
-
-#if !TEST_ADAL_WINRT
-        public TestContext TestContext { get; set; }
-
-        protected StsType GetStsTypeFromContext()
-        {
-            return GetStsType((string)TestContext.DataRow["StsType"]);
-        }
-#endif
 
         protected static StsType GetStsType(string stsType)
         {
@@ -58,6 +45,11 @@ namespace Test.ADAL.Common
             {
                 sts = StsFactory.CreateSts(stsType);
                 StsDictionary.Add(stsType, sts);
+            }
+
+            if (sts.State != StsState.Started)
+            {
+                sts.Start();
             }
 
             return sts;
