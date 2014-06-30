@@ -30,6 +30,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return (long)(diff.TotalSeconds);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         public static DateTime ConvertFromTimeT(long seconds)
         {
             var startTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);

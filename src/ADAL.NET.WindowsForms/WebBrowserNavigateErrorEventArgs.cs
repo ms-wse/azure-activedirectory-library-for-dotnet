@@ -17,6 +17,7 @@
 //----------------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 {
@@ -29,6 +30,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
         private readonly object webBrowserActiveXInstance;
 
         // Methods
+        [SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings")]  
         public WebBrowserNavigateErrorEventArgs(string url, string targetFrameName, int statusCode, object webBrowserActiveXInstance)
         {
             this.url = url;
@@ -47,6 +49,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
         }
 
         // url as a string, as in case of error it could be invalid url
+        [SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")]
         public string Url
         {
             get

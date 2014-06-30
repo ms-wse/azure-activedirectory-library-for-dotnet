@@ -26,6 +26,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
     {
         private static bool invalid;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static bool IsValidEmail(string strIn)
         {
             invalid = false;

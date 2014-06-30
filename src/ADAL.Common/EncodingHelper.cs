@@ -27,6 +27,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
     /// </summary>
     internal static partial class EncodingHelper
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static void AddKeyValueStringsWithUrlEncoding(StringBuilder messageBuilder, Dictionary<string, string> keyValuePairs)
         {
             foreach (KeyValuePair<string, string> kvp in keyValuePairs)

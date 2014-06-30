@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -115,7 +116,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
             string guid = Guid.NewGuid().ToString();
             StringBuilder messageBuilder = new StringBuilder(MaxExpectedMessageSize);
-            messageBuilder.AppendFormat(WsTrustEnvelopeTemplate, guid, resource, securityHeaderBuilder, appliesTo);
+            messageBuilder.AppendFormat(CultureInfo.InvariantCulture, WsTrustEnvelopeTemplate, guid, resource, securityHeaderBuilder, appliesTo);
 
             securityHeaderBuilder.SecureClear();
 
@@ -132,7 +133,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 StringBuilder messageCredentialsBuilder = new StringBuilder(MaxExpectedMessageSize);
                 string guid = Guid.NewGuid().ToString();
 
-                messageCredentialsBuilder.AppendFormat("<o:UsernameToken u:Id='uuid-{0}'><o:Username>{1}</o:Username><o:Password>", guid, credential.UserName);
+                messageCredentialsBuilder.AppendFormat(CultureInfo.InvariantCulture, "<o:UsernameToken u:Id='uuid-{0}'><o:Username>{1}</o:Username><o:Password>", guid, credential.UserName);
 
                 char[] passwordChars = null;
                 try
@@ -145,7 +146,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                     passwordChars.SecureClear();
                 }
 
-                messageCredentialsBuilder.AppendFormat("</o:Password></o:UsernameToken>");
+                messageCredentialsBuilder.AppendFormat(CultureInfo.InvariantCulture, "</o:Password></o:UsernameToken>");
 
                 //
                 // Timestamp the message
@@ -158,6 +159,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 string expiryTimString = DateTimeHelper.BuildTimeString(expiryTime);
 
                 securityHeaderBuilder.AppendFormat(
+                    CultureInfo.InvariantCulture,
                     "<o:Security s:mustUnderstand='1' xmlns:o='http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'><u:Timestamp u:Id='_0'><u:Created>{0}</u:Created><u:Expires>{1}</u:Expires></u:Timestamp>{2}</o:Security>", 
                     currentTimeString, 
                     expiryTimString, 

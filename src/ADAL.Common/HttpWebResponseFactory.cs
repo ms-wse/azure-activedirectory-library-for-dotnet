@@ -22,6 +22,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
     internal static class HttpWebResponseFactory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static IHttpWebResponse Create(WebResponse response)
         {
             return new HttpWebResponseWrapper(response);

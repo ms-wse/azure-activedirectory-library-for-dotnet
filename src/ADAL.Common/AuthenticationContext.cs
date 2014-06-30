@@ -42,7 +42,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
         static AuthenticationContext()
         {
-            Logger.Information(null, string.Format("ADAL {0} with assembly version '{1}', file version '{2}' and informational version '{3}' is running...",
+            Logger.Information(null, string.Format(CultureInfo.InvariantCulture, "ADAL {0} with assembly version '{1}', file version '{2}' and informational version '{3}' is running...",
                 PlatformSpecificHelper.GetProductName(), AdalIdHelper.GetAdalVersion(), AdalIdHelper.GetAssemblyFileVersion(), AdalIdHelper.GetAssemblyInformationalVersion()));
         }
 
@@ -187,11 +187,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 if (result.RefreshToken != null)
                 {
                     string refreshTokenHash = PlatformSpecificHelper.CreateSha256Hash(result.RefreshToken);
-                    logMessage = string.Format("Access Token with hash '{0}' and Refresh Token with hash '{1}' returned", accessTokenHash, refreshTokenHash);
+                    logMessage = string.Format(CultureInfo.InvariantCulture, "Access Token with hash '{0}' and Refresh Token with hash '{1}' returned", accessTokenHash, refreshTokenHash);
                 }
                 else
                 {
-                    logMessage = string.Format("Access Token with hash '{0}' returned", accessTokenHash);                    
+                    logMessage = string.Format(CultureInfo.InvariantCulture, "Access Token with hash '{0}' returned", accessTokenHash);                    
                 }
 
                 Logger.Verbose(callState, logMessage);

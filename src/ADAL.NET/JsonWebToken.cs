@@ -17,6 +17,7 @@
 //----------------------------------------------------------------------
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -117,6 +118,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 this.Credential = credential;
             }
 
+            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
             [DataMember(Name = JsonWebTokenConstants.ReservedHeaderParameters.Type)]
             public static string Type
             {
@@ -131,6 +133,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 }
             }
 
+            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
             [DataMember(Name = JsonWebTokenConstants.ReservedHeaderParameters.Algorithm)]
             public string Algorithm
             {
@@ -174,6 +177,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
             }
 
+            [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
             [DataMember(Name = JsonWebTokenConstants.ReservedHeaderParameters.X509CertificateThumbprint)]
             public string X509CertificateThumbprint
             {

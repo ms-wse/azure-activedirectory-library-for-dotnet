@@ -107,7 +107,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
             else
             {
-                throw new ArgumentException("clientKey");
+                throw new ArgumentException("Invalid client key", "clientKey");
             }
         }
     }

@@ -133,6 +133,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
         private static class DpiHelper
         {
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
             static DpiHelper()
             {
                 const double DefaultDpi = 96.0;

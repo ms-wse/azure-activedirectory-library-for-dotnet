@@ -43,6 +43,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// WWW-Authenticate header containing authentication parameters.</summary>
         /// <param name="response">Response received from the resource.</param>
         /// <returns>AuthenticationParameters object containing authentication parameters</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters")]
         public static AuthenticationParameters CreateFromUnauthorizedResponse(HttpWebResponse response)
         {
             return CreateFromUnauthorizedResponseCommon(NetworkPlugin.HttpWebRequestFactory.CreateResponse(response));

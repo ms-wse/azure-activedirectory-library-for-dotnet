@@ -22,6 +22,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
     class AdalUserMismatchException : AdalException
 #else
     using System;
+    using System.Globalization;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -36,7 +37,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// </summary>
         public AdalUserMismatchException(string requestedUser, string returnedUser)
             : base(AdalError.UserMismatch, 
-                   string.Format(AdalErrorMessage.UserMismatch, returnedUser, requestedUser))
+                   string.Format(CultureInfo.InvariantCulture, AdalErrorMessage.UserMismatch, returnedUser, requestedUser))
         {
             this.RequestedUser = requestedUser;
             this.ReturnedUser = returnedUser;

@@ -40,6 +40,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static byte[] SignWithSymmetricKey(string message, byte[] key)
         {
             using (HMAC hmac = HMAC.Create("HMACSHA256"))

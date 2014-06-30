@@ -125,6 +125,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
                 this.bottom = bottom;
             }
 
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
             public static COMRECT FromXYWH(int x, int y, int width, int height)
             {
                 return new COMRECT(x, y, x + width, y + height);

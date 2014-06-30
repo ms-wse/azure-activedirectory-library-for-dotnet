@@ -67,8 +67,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public AdalServiceException(string errorCode, string message, WebException innerException)
             : base(errorCode, message, innerException)
         {
-            IHttpWebResponse response = NetworkPlugin.HttpWebRequestFactory.CreateResponse(innerException.Response);
-            this.StatusCode = (response != null) ? (int)response.StatusCode : 0;
+            if (innerException != null)
+            {
+                IHttpWebResponse response = NetworkPlugin.HttpWebRequestFactory.CreateResponse(innerException.Response);
+                this.StatusCode = (response != null) ? (int)response.StatusCode : 0;
+            }
         }
 
         /// <summary>

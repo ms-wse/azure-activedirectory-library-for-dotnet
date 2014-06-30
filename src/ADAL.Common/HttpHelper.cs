@@ -50,6 +50,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static void CopyHeadersTo(WebHeaderCollection source, Dictionary<string, string> target)
         {
             if (target != null)
@@ -104,6 +105,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static string ReadResponse(HttpWebResponse response)
         {
             return ReadStreamContent(response.GetResponseStream());

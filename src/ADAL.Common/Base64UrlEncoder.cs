@@ -39,6 +39,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         // The changes make the encoding alphabet file and URL safe
         // See RFC4648, section 5 for more info
         //
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         public static string Encode(string arg)
         {
             if (arg == null)

@@ -22,6 +22,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 {
     static internal class BrowserDialogFactory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         internal static IWebUI CreateAuthenticationDialog(PromptBehavior promptBehavior)
         {
             switch (promptBehavior)
