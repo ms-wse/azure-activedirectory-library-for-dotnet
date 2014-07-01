@@ -33,10 +33,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public const string GivenName = "GivenName";
         public const string IdentityProviderName = "IdentityProviderName";
         public const string IsMultipleResourceRefreshToken = "IsMultipleResourceRefreshToken";
+        public const string IsUserIdDisplayable = "IsUserIdDisplayable";
         public const string Resource = "Resource";
         public const string TenantId = "TenantId";
-        public const string UniqueId = "UniqueId";
-        public const string DisplayableId = "DisplayableId";
+        public const string UserId = "UserId";
         public const string CacheValue = "CacheValue";
         public const string CacheValueSegmentCount = "CacheValueSegmentCount";
     }
@@ -59,7 +59,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         {
             var localSettings = ApplicationData.Current.LocalSettings;
             localSettings.CreateContainer(LocalSettingsContainerName, ApplicationDataCreateDisposition.Always);
-            settingValues = localSettings.Containers[LocalSettingsContainerName].Values;            
+            settingValues = localSettings.Containers[LocalSettingsContainerName].Values;
         }
 
         public int Count
@@ -90,7 +90,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
                 IEnumerable<ApplicationDataCompositeValue> cacheItemValues = this.GetAllLocalSettingValues();
                 try
-                { 
+                {
                     return cacheItemValues.Select(LocalSettingsHelper.GetCacheValue).ToList();
                 }
                 catch (FormatException)
@@ -288,8 +288,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
                 if (this.AreKeyValuesEqual(cacheItem, key))
                 {
-                    try 
-                    { 
+                    try
+                    {
                         value = LocalSettingsHelper.GetCacheValue((ApplicationDataCompositeValue)cacheItem.Value);
                         return true;
                     }
@@ -324,10 +324,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             compositeValue[CompositeCacheElement.GivenName] = cacheKey.GivenName;
             compositeValue[CompositeCacheElement.IdentityProviderName] = cacheKey.IdentityProviderName;
             compositeValue[CompositeCacheElement.IsMultipleResourceRefreshToken] = cacheKey.IsMultipleResourceRefreshToken;
+            compositeValue[CompositeCacheElement.IsUserIdDisplayable] = cacheKey.IsUserIdDisplayable;
             compositeValue[CompositeCacheElement.Resource] = cacheKey.Resource;
             compositeValue[CompositeCacheElement.TenantId] = cacheKey.TenantId;
-            compositeValue[CompositeCacheElement.UniqueId] = cacheKey.UniqueId;
-            compositeValue[CompositeCacheElement.DisplayableId] = cacheKey.DisplayableId;
+            compositeValue[CompositeCacheElement.UserId] = cacheKey.UserId;
 
             return compositeValue;
         }
@@ -335,19 +335,19 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         private static TokenCacheKey ConvertToTokenCacheKey(ApplicationDataCompositeValue compositeValue)
         {
             var cacheKey = new TokenCacheKey
-                {
-                    Authority = (string)compositeValue[CompositeCacheElement.Authority],
-                    ClientId = (string)compositeValue[CompositeCacheElement.ClientId],
-                    ExpiresOn = new DateTimeOffset((long)compositeValue[CompositeCacheElement.ExpiresOn], TimeSpan.Zero),
-                    FamilyName = (string)compositeValue[CompositeCacheElement.FamilyName],
-                    GivenName = (string)compositeValue[CompositeCacheElement.GivenName],
-                    IdentityProviderName = (string)compositeValue[CompositeCacheElement.IdentityProviderName],
-                    IsMultipleResourceRefreshToken = (bool)compositeValue[CompositeCacheElement.IsMultipleResourceRefreshToken],
-                    Resource = (string)compositeValue[CompositeCacheElement.Resource],
-                    TenantId = (string)compositeValue[CompositeCacheElement.TenantId],
-                    UniqueId = (string)compositeValue[CompositeCacheElement.UniqueId],
-                    DisplayableId = (string)compositeValue[CompositeCacheElement.DisplayableId]
-                };
+            {
+                Authority = (string)compositeValue[CompositeCacheElement.Authority],
+                ClientId = (string)compositeValue[CompositeCacheElement.ClientId],
+                ExpiresOn = new DateTimeOffset((long)compositeValue[CompositeCacheElement.ExpiresOn], TimeSpan.Zero),
+                FamilyName = (string)compositeValue[CompositeCacheElement.FamilyName],
+                GivenName = (string)compositeValue[CompositeCacheElement.GivenName],
+                IdentityProviderName = (string)compositeValue[CompositeCacheElement.IdentityProviderName],
+                IsMultipleResourceRefreshToken = (bool)compositeValue[CompositeCacheElement.IsMultipleResourceRefreshToken],
+                IsUserIdDisplayable = (bool)compositeValue[CompositeCacheElement.IsUserIdDisplayable],
+                Resource = (string)compositeValue[CompositeCacheElement.Resource],
+                TenantId = (string)compositeValue[CompositeCacheElement.TenantId],
+                UserId = (string)compositeValue[CompositeCacheElement.UserId]
+            };
 
             return cacheKey;
         }

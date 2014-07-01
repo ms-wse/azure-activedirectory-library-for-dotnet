@@ -165,14 +165,23 @@
     <Compile Include="..\ADAL.Common\RequestParameters.cs">
       <Link>Common\RequestParameters.cs</Link>
     </Compile>
+    <Compile Include="..\ADAL.Common\TokenCache.cs">
+      <Link>Common\TokenCache.cs</Link>
+    </Compile>
     <Compile Include="..\ADAL.Common\TokenCacheHelper.cs">
       <Link>Common\TokenCacheHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\ADAL.Common\TokenCacheItem.cs">
+      <Link>Common\TokenCacheItem.cs</Link>
     </Compile>
     <Compile Include="..\ADAL.Common\TokenCacheKey.cs">
       <Link>Common\TokenCacheKey.cs</Link>
     </Compile>
     <Compile Include="..\ADAL.Common\TokenCacheManager.cs">
       <Link>Common\TokenCacheManager.cs</Link>
+    </Compile>
+    <Compile Include="..\ADAL.Common\TokenCacheNotificationArgs.cs">
+      <Link>Common\TokenCacheNotificationArgs.cs</Link>
     </Compile>
     <Compile Include="..\ADAL.Common\UserAssertion.cs">
       <Link>Common\UserAssertion.cs</Link>
@@ -199,6 +208,7 @@
     <Compile Include="AuthenticationParameters.cs" />
     <Compile Include="AuthenticationResult.cs" />
     <Compile Include="ClientAssertion.cs" />
+    <Compile Include="ClientAssertionCertificate.cs" />
     <Compile Include="ClientCredential.cs" />
     <Compile Include="ClientKey.cs" />
     <Compile Include="CryptographyHelper.cs" />
@@ -216,7 +226,6 @@
     <Compile Include="Web\IWebUI.cs" />
     <Compile Include="Web\IWebUIFactory.cs" />
     <Compile Include="Web\WebUIFactory.cs" />
-    <Compile Include="X509CertificateCredential.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -100,9 +100,6 @@
     <Compile Include="..\Test.ADAL.Common\Sts.cs">
       <Link>Common\Sts.cs</Link>
     </Compile>
-    <Compile Include="..\Test.ADAL.Common\TestTokenCacheStoreBase.cs">
-      <Link>Common\TestTokenCacheStoreBase.cs</Link>
-    </Compile>
     <Compile Include="..\Test.ADAL.Common\UISupplier.cs">
       <Link>Common\UISupplier.cs</Link>
     </Compile>
@@ -121,8 +118,8 @@
     <Compile Include="..\Test.ADAL.NET\AuthenticationParametersProxy.cs">
       <Link>AuthenticationParametersProxy.cs</Link>
     </Compile>
-    <Compile Include="..\Test.ADAL.NET\X509CertificateCredentialProxy.cs">
-      <Link>X509CertificateCredentialProxy.cs</Link>
+    <Compile Include="..\Test.ADAL.NET\ClientAssertionCertificateProxy.cs">
+      <Link>ClientAssertionCertificateProxy.cs</Link>
     </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

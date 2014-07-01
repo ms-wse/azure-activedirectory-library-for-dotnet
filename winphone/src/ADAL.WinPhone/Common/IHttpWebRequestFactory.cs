@@ -1,4 +1,4 @@
-//----------------------------------------------------------------------
+﻿//----------------------------------------------------------------------
 // Copyright (c) Microsoft Open Technologies, Inc.
 // All Rights Reserved
 // Apache License 2.0
@@ -16,12 +16,14 @@
 // limitations under the License.
 //----------------------------------------------------------------------
 
-namespace Test.ADAL.Common
+using System.Net;
+
+namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
-    public sealed class X509CertificateCredentialProxy
+    interface IHttpWebRequestFactory
     {
-        public X509CertificateCredentialProxy(string clientId, string certificateName, string certificatePassword)
-        {
-        }
+        IHttpWebRequest Create(string uri);
+
+        IHttpWebResponse CreateResponse(WebResponse response);
     }
 }

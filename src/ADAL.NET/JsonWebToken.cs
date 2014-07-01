@@ -48,7 +48,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 };
         }
 
-        public ClientAssertion Sign(X509CertificateCredential credential)
+        public ClientAssertion Sign(ClientAssertionCertificate credential)
         {
             // Base64Url encoded header and claims
             string token = this.Encode(credential);     
@@ -82,13 +82,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
-        private static string EncodeHeaderToJson(X509CertificateCredential credential)
+        private static string EncodeHeaderToJson(ClientAssertionCertificate credential)
         {
             JWTHeaderWithCertificate header = new JWTHeaderWithCertificate(credential);
             return EncodeToJson(header);
         }
 
-        private string Encode(X509CertificateCredential credential)
+        private string Encode(ClientAssertionCertificate credential)
         {
             // Header segment
             string jsonHeader = EncodeHeaderToJson(credential);
@@ -111,9 +111,9 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataContract]
         internal class JWTHeader
         {
-            protected X509CertificateCredential Credential { get; private set; }
+            protected ClientAssertionCertificate Credential { get; private set; }
 
-            public JWTHeader(X509CertificateCredential credential)
+            public JWTHeader(ClientAssertionCertificate credential)
             {
                 this.Credential = credential;
             }
@@ -172,7 +172,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataContract]
         internal sealed class JWTHeaderWithCertificate : JWTHeader
         {
-            public JWTHeaderWithCertificate(X509CertificateCredential credential)
+            public JWTHeaderWithCertificate(ClientAssertionCertificate credential)
                 : base(credential)
             {
             }

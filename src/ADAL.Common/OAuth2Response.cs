@@ -88,6 +88,12 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataMember(Name = IdTokenClaim.Email, IsRequired = false)]
         public string Email { get; set; }
 
+        [DataMember(Name = IdTokenClaim.PasswordExpiration, IsRequired = false)]
+        public long PasswordExpiration { get; set; }
+
+        [DataMember(Name = IdTokenClaim.PasswordChangeUrl, IsRequired = false)]
+        public string PasswordChangeUrl { get; set; }
+
         [DataMember(Name = IdTokenClaim.IdentityProvider, IsRequired = false)]
         public string IdentityProvider { get; set; }
     }
@@ -104,6 +110,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
                 result = new AuthenticationResult(tokenResponse.TokenType, tokenResponse.AccessToken, tokenResponse.RefreshToken, expiresOn)
                     {
+#if !ADAL_WINRT
+                        // This is only needed for AcquireTokenByAuthorizationCode in which parameter resource is optional and we need
+                        // to get it from the STS response.
+                        Resource = tokenResponse.Resource,
+#endif                        
                         IsMultipleResourceRefreshToken = (!string.IsNullOrWhiteSpace(tokenResponse.RefreshToken) && !string.IsNullOrWhiteSpace(tokenResponse.Resource)),
                     };
 
@@ -135,8 +146,19 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                     string givenName = idToken.GivenName;
                     string familyName = idToken.FamilyName;
                     string identityProvider = idToken.IdentityProvider;
+                    DateTimeOffset? passwordExpiresOffest = null;
+                    if (idToken.PasswordExpiration > 0)
+                    {
+                        passwordExpiresOffest = DateTime.UtcNow + TimeSpan.FromSeconds(idToken.PasswordExpiration);
+                    }
 
-                    result.UpdateTenantAndUserInfo(tenantId, new UserInfo { UniqueId = uniqueId, DisplayableId = displayableId, GivenName = givenName, FamilyName = familyName, IdentityProvider = identityProvider });
+                    Uri changePasswordUri = null;
+                    if (!string.IsNullOrEmpty(idToken.PasswordChangeUrl))
+                    {
+                        changePasswordUri = new Uri(idToken.PasswordChangeUrl);
+                    }
+
+                    result.UpdateTenantAndUserInfo(tenantId, tokenResponse.IdToken, new UserInfo { UniqueId = uniqueId, DisplayableId = displayableId, GivenName = givenName, FamilyName = familyName, IdentityProvider = identityProvider, PasswordExpiresOn = passwordExpiresOffest, PasswordChangeUrl = changePasswordUri });
                 }
             }
             else if (tokenResponse.Error != null)

@@ -35,8 +35,10 @@ namespace Test.ADAL.Common
     {
         NotSpecified,
         Always,
+        Auto,
         AccessCodeOnly,
-        Never
+        Never,
+        RefreshSession
     }
 
     internal enum AuthenticationStatusProxy
@@ -57,6 +59,9 @@ namespace Test.ADAL.Common
 
         [DataMember]
         public string RefreshToken { get; set; }
+
+        [DataMember]
+        public string IdToken { get; set; }
 
         [DataMember]
         public DateTimeOffset ExpiresOn { get; set; }

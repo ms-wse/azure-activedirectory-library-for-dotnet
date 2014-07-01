@@ -26,6 +26,20 @@ using Test.ADAL.Common;
 
 namespace Test.ADAL.WinRT
 {
+    /// <summary>
+    /// To indicate what API was called in the test app
+    /// Acronyms used:
+    /// A: Authority
+    /// V: ValidateAuthority
+    /// T: Token Cache
+    /// R: Resource
+    /// C: ClientId
+    /// Re: RedirectUri
+    /// P: PromptBehavior
+    /// U: UserId/UserName
+    /// Pa: Password
+    /// X: ExtraQueryParameters
+    /// </summary>
     enum CommandType
     {
         ClearDefaultTokenCache,
@@ -35,17 +49,16 @@ namespace Test.ADAL.WinRT
         SetUseCorporateNetwork,
         CreateContextA,
         CreateContextAV,
-        CreateContextAVC,
+        CreateContextAVT,
         AquireTokenAsyncRC,
         AquireTokenAsyncRCP,
-        AquireTokenAsyncRCUP,
-        AquireTokenAsyncRCR,
-        AquireTokenAsyncRCRU,
-        AquireTokenAsyncRCRP,
-        AquireTokenAsyncRCRPU,
+        AquireTokenAsyncRCUPa,
+        AquireTokenAsyncRCRe,
+        AquireTokenAsyncRCReP,
+        AquireTokenAsyncRCRePU,
         AcquireTokenByRefreshTokenAsyncRC,
-        AcquireTokenByRefreshTokenAsyncRCR,
-        AquireTokenAsyncRCRUX,
+        AcquireTokenByRefreshTokenAsyncRCRe,
+        AquireTokenAsyncRCRePUX,
         CreateFromResourceUrlAsync,
         CreateFromResponseAuthenticateHeader,
     }
