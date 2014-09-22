@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -27,8 +28,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
     internal static class HttpHelper
     {
+
         public static async Task<T> SendPostRequestAndDeserializeJsonResponseAsync<T>(string uri, RequestParameters requestParameters, CallState callState)
         {
+            ClientMetrics clientMetrics = new ClientMetrics();
+
             try
             {
                 IHttpWebRequest request = NetworkPlugin.HttpWebRequestFactory.Create(uri);
@@ -36,40 +40,27 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 AddCorrelationIdHeadersToRequest(request, callState);
                 AdalIdHelper.AddAsHeaders(request);
 
+                clientMetrics.BeginClientMetricsRecord(request, callState);
+
                 SetPostRequest(request, requestParameters, callState);
                 using (IHttpWebResponse response = await request.GetResponseSyncOrAsync(callState))
                 {
                     VerifyCorrelationIdHeaderInReponse(response, callState);
-                    return DeserializeResponse<T>(response);                    
+                    clientMetrics.SetLastError(null);
+                    return DeserializeResponse<T>(response);
                 }
             }
             catch (WebException ex)
             {
-                TokenResponse tokenResponse = OAuth2Response.ReadErrorResponse(ex.Response); 
-                throw new AdalServiceException(tokenResponse.Error, tokenResponse.ErrorDescription, ex);
+                TokenResponse tokenResponse = OAuth2Response.ReadErrorResponse(ex.Response);
+                clientMetrics.SetLastError(tokenResponse.ErrorCodes);
+                var serviceEx = new AdalServiceException(tokenResponse.Error, tokenResponse.ErrorDescription, ex);
+                Logger.LogException(callState, serviceEx);
+                throw serviceEx;
             }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
-        public static void CopyHeadersTo(WebHeaderCollection source, Dictionary<string, string> target)
-        {
-            if (target != null)
+            finally
             {
-                foreach (string reponseHeaderKey in source.AllKeys)
-                {
-                    string trimmedKey = reponseHeaderKey.Trim();
-                    if (target.ContainsKey(trimmedKey))
-                    {
-                        if (target[reponseHeaderKey] == null)
-                        {
-                            target[reponseHeaderKey] = source[trimmedKey].Trim();
-                        }
-                        else
-                        {
-                            target[reponseHeaderKey] = target[reponseHeaderKey] + "," + source[trimmedKey].Trim();
-                        }
-                    }
-                }
+                clientMetrics.EndClientMetricsRecord(ClientMetricsEndpointType.Token, callState);
             }
         }
 
@@ -103,12 +94,6 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
                 return ((T)serializer.ReadObject(stream));
             }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
-        public static string ReadResponse(HttpWebResponse response)
-        {
-            return ReadStreamContent(response.GetResponseStream());
         }
 
         public static string ReadStreamContent(Stream stream)

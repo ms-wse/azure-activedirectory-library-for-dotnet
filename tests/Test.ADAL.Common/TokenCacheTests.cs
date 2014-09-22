@@ -27,160 +27,159 @@ namespace Test.ADAL.Common.Unit
     internal class TokenCacheTests
     {
         public const long ValidExpiresIn = 28800;
-        private const string InvalidResource = "00000003-0000-0ff1-ce00-000000000001";
-        private const string ValidClientId = "87002806-c87a-41cd-896b-84ca5690d29f";
-        private const string ValidResource = "00000003-0000-0ff1-ce00-000000000000";
-        private const string ValidAccessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8wMDAwMDAwMS0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAvIiwibmJmIjoxMzU4MjIwODkxLCJleHAiOjEzNTgyNDk2OTEsImFjciI6IjEiLCJwcm4iOiI2OWQyNDU0NC1jNDIwLTQ3MjEtYTRiZi0xMDZmMjM3OGQ5ZjYiLCJ0aWQiOiIwMDAwMDAwMS0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOiIxMzU4MjIwODkxIiwiYXBwaWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJhcHBpZGFjciI6IjAiLCJzY3AiOiJzYW1wbGUgc2NvcGVzIiwidiI6IjIifQ.9p6zqloui6PY31Wg6SJpgt2YS-pGWKjHd-0bw_LcuFo";
-        
-        // Passing a seed to make repro possible
-        private static readonly Random Rand = new Random(42);   
 
-        public static void DefaultTokenCacheStoreTest()
+        private const string InvalidResource = "00000003-0000-0ff1-ce00-000000000001";
+
+        private const string ValidClientId = "87002806-c87a-41cd-896b-84ca5690d29f";
+
+        private const string ValidResource = "00000003-0000-0ff1-ce00-000000000000";
+
+        private const string ValidAccessToken =
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8wMDAwMDAwMS0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAvIiwibmJmIjoxMzU4MjIwODkxLCJleHAiOjEzNTgyNDk2OTEsImFjciI6IjEiLCJwcm4iOiI2OWQyNDU0NC1jNDIwLTQ3MjEtYTRiZi0xMDZmMjM3OGQ5ZjYiLCJ0aWQiOiIwMDAwMDAwMS0wMDAwLTBmZjEtY2UwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOiIxMzU4MjIwODkxIiwiYXBwaWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJhcHBpZGFjciI6IjAiLCJzY3AiOiJzYW1wbGUgc2NvcGVzIiwidiI6IjIifQ.9p6zqloui6PY31Wg6SJpgt2YS-pGWKjHd-0bw_LcuFo";
+
+        // Passing a seed to make repro possible
+        private static readonly Random Rand = new Random(42);
+
+        public static void DefaultTokenCacheTest()
         {
             AuthenticationContext context = new AuthenticationContext("https://login.windows.net/dummy", false);
-            var cache = context.TokenCacheStore;
+            var cache = context.TokenCache;
             cache.Clear();
             Log.Comment("====== Verifying that cache is empty...");
             VerifyCacheItemCount(cache, 0);
 
             const string DisplayableId = "testuser@microsoft.com";
             Log.Comment("====== Creating a set of keys and values for the test...");
-            TokenCacheKey key = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = ValidResource, ClientId = ValidClientId, DisplayableId = DisplayableId };
+            TokenCacheKey key = new TokenCacheKey("https://localhost/MockSts", ValidResource, ValidClientId, TokenSubjectType.User, null, DisplayableId);
+            var value = CreateCacheValue(key.UniqueId, key.DisplayableId);
             Log.Comment(string.Format("Cache Key (with User): {0}", key));
-            TokenCacheKey key2 = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = InvalidResource, ClientId = ValidClientId, DisplayableId = DisplayableId };
-            Log.Comment(string.Format("Cache Key (with User): {0}", key));
-            TokenCacheKey incorrectUserKey = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = InvalidResource, ClientId = ValidClientId, DisplayableId = "testuser2@microsoft.com" };
-            Log.Comment(string.Format("Cache Key (with User): {0}", key));
-            TokenCacheKey userlessKey = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = ValidResource, ClientId = ValidClientId };
-            Log.Comment(string.Format("Cache Key (withoutUser): {0}", userlessKey));
-            string value = CreateCacheValue();
             Log.Comment(string.Format("Cache Value 1: {0}", value));
-            string value2 = CreateCacheValue();
+            TokenCacheKey key2 = new TokenCacheKey("https://localhost/MockSts", InvalidResource, ValidClientId, TokenSubjectType.User, null, DisplayableId);
+            var value2 = CreateCacheValue(null, DisplayableId);
+            Log.Comment(string.Format("Cache Key (with User): {0}", key));
             Log.Comment(string.Format("Cache Value 2: {0}", value2));
-            string value3 = CreateCacheValue();
-            Log.Comment(string.Format("Cache Value 3: {0}", value3));
+            TokenCacheKey userlessKey = new TokenCacheKey("https://localhost/MockSts", ValidResource, ValidClientId, TokenSubjectType.User, null, null);
+            var userlessValue = CreateCacheValue(null, null);
+            Log.Comment(string.Format("Cache Key (withoutUser): {0}", userlessKey));
+            Log.Comment(string.Format("Cache Value 3: {0}", userlessValue));
+
+            TokenCacheKey incorrectUserKey = new TokenCacheKey("https://localhost/MockSts", InvalidResource, ValidClientId, TokenSubjectType.User, null, "testuser2@microsoft.com");
 
             Log.Comment("====== Verifying that cache stores the first key/value pair...");
-            cache.Add(key, value);
+            AddToDictionary(cache, key, value);
             VerifyCacheItems(cache, 1, key);
 
             Log.Comment("====== Verifying that the only existing value (with user) is retrieved when requested with user and NOT without...");
             Log.Comment("Retrieving with user...");
-            var valueInCache = cache[key];
-            VerifyCacheValuesAreEqual(value, valueInCache);
+            var valueInCache = cache.tokenCacheDictionary[key];
+            VerifyAuthenticationResultsAreEqual(value, valueInCache);
             Log.Comment("Retrieving without user...");
-            cache.TryGetValue(userlessKey, out valueInCache);
+            cache.tokenCacheDictionary.TryGetValue(userlessKey, out valueInCache);
             Verify.IsNull(valueInCache);
 
-            Log.Comment("====== Verifying that the value can be replaced for an existing key...");
-            cache[key] = value2;
-            valueInCache = cache[key];
-            VerifyCacheValuesAreEqual(value2, valueInCache);
-            VerifyCacheItems(cache, 1, key);
-
             Log.Comment("====== Verifying that two entries can exist at the same time, one with user and one without...");
-            cache.Add(userlessKey, value3);
+            AddToDictionary(cache, userlessKey, userlessValue);
             VerifyCacheItems(cache, 2, key, userlessKey);
 
             Log.Comment("====== Verifying that correct values are retrieved when requested with and without user (when two entries exist)...");
             Log.Comment("Retrieving without user...");
-            valueInCache = cache[userlessKey];
-            VerifyCacheValuesAreEqual(value3, valueInCache);
+            valueInCache = cache.tokenCacheDictionary[userlessKey];
+            VerifyAuthenticationResultsAreEqual(userlessValue, valueInCache);
             Log.Comment("Retrieving with user...");
-            valueInCache = cache[key];
-            VerifyCacheValuesAreEqual(value2, valueInCache);
+            valueInCache = cache.tokenCacheDictionary[key];
+            VerifyAuthenticationResultsAreEqual(value, valueInCache);
 
             Log.Comment("====== Verifying that correct entry is deleted when the key with user is passed...");
-            cache.Remove(key);
+            RemoveFromDictionary(cache, key);
             VerifyCacheItems(cache, 1, userlessKey);
 
             Log.Comment("====== Verifying that correct entry is deleted when the key without user is passed...");
-            cache.Add(key, value);
-            cache.Remove(userlessKey);
+            AddToDictionary(cache, key, value);
+            RemoveFromDictionary(cache, userlessKey);
             VerifyCacheItems(cache, 1, key);
 
             Log.Comment("====== Verifying that correct entry is retrieve and later deleted when the key with user is passed, even if entries are in reverse order...");
             cache.Clear();
             Log.Comment("Storing without user first and then with user...");
-            cache.Add(userlessKey, value);
-            cache.Add(key, value2);
-            valueInCache = cache[key];
-            VerifyCacheValuesAreEqual(value2, valueInCache);
-            cache.Remove(key);
+            AddToDictionary(cache, userlessKey, userlessValue);
+            AddToDictionary(cache, key2, value2);
+            valueInCache = cache.tokenCacheDictionary[key2];
+            VerifyAuthenticationResultsAreEqual(value2, valueInCache);
+            RemoveFromDictionary(cache, key2);
             VerifyCacheItems(cache, 1, userlessKey);
 
             Log.Comment("====== Verifying that the userless entry is retrieved ONLY when requested without user...");
             cache.Clear();
-            cache.Add(userlessKey, value);
+            AddToDictionary(cache, userlessKey, value);
             Log.Comment("Retrieving with user...");
-            cache.TryGetValue(key, out valueInCache);
+            cache.tokenCacheDictionary.TryGetValue(key, out valueInCache);
             Verify.IsNull(valueInCache);
             Log.Comment("Retrieving without user...");
-            valueInCache = cache[userlessKey];
-            VerifyCacheValuesAreEqual(value, valueInCache);
+            valueInCache = cache.tokenCacheDictionary[userlessKey];
+            VerifyAuthenticationResultsAreEqual(value, valueInCache);
 
             Log.Comment("====== Verifying that entry cannot be retrieved with incorrect key...");
             cache.Clear();
-            cache.Add(key, value);
+            AddToDictionary(cache, key, value);
             Log.Comment("Retrieving with incorrect key...");
-            cache.TryGetValue(key2, out valueInCache);
+            cache.tokenCacheDictionary.TryGetValue(key2, out valueInCache);
             Verify.IsNull(valueInCache);
             Log.Comment("Retrieving with incorrect user...");
-            cache.TryGetValue(incorrectUserKey, out valueInCache);
+            cache.tokenCacheDictionary.TryGetValue(incorrectUserKey, out valueInCache);
             Verify.IsNull(valueInCache);
             Log.Comment("Retrieving with correct user...");
-            valueInCache = cache[key];
-            VerifyCacheValuesAreEqual(value, valueInCache);
+            valueInCache = cache.tokenCacheDictionary[key];
+            VerifyAuthenticationResultsAreEqual(value, valueInCache);
 
             Log.Comment("====== Verifying that removing items from an empty cache will not throw...");
             Log.Comment("Clearing cache...");
             cache.Clear();
             Log.Comment("Storing an entry...");
-            cache.Add(key, value);
+            AddToDictionary(cache, key, value);
             VerifyCacheItemCount(cache, 1);
             Log.Comment("Remvoing the only entry...");
-            cache.Remove(key);
+            RemoveFromDictionary(cache, key);
             VerifyCacheItemCount(cache, 0);
             Log.Comment("Trying to remove from an empty cache...");
-            cache.Remove(key);
+            RemoveFromDictionary(cache, key);
             VerifyCacheItemCount(cache, 0);
         }
 
-        public async static Task TokenCacheKeyTestAsync()
+        public static async Task TokenCacheKeyTestAsync()
         {
             CheckPublicGetSets();
 
-            string authenticationResult = CreateCacheValue();
             string authority = "https://www.gotJwt.com/";
             string clientId = Guid.NewGuid().ToString();
-            string password = Guid.NewGuid().ToString();
             string resource = Guid.NewGuid().ToString();
             string tenantId = Guid.NewGuid().ToString();
             string uniqueId = Guid.NewGuid().ToString();
             string displayableId = Guid.NewGuid().ToString();
             Uri redirectUri = new Uri("https://www.GetJwt.com");
 
+            var authenticationResult = CreateCacheValue(uniqueId, displayableId);
             authority = authority + tenantId + "/";
-            UserCredential credential = new UserCredential(displayableId, password);
+            UserCredential credential = new UserCredential(displayableId);
             AuthenticationContext tempContext = new AuthenticationContext(authority, false);
-            IDictionary<TokenCacheKey, string> localCache = tempContext.TokenCacheStore;
+            var localCache = tempContext.TokenCache;
             localCache.Clear();
 
             // @Resource, Credential
-            TokenCacheKey tokenCacheKey = new TokenCacheKey { Authority = authority, Resource = resource, ClientId = clientId, UniqueId = uniqueId, DisplayableId = displayableId, ExpiresOn = new DateTimeOffset(DateTime.Now + TimeSpan.FromSeconds(ValidExpiresIn)) };
-            localCache.Add(tokenCacheKey, authenticationResult);
+            TokenCacheKey tokenCacheKey = new TokenCacheKey(authority, resource, clientId, TokenSubjectType.User, uniqueId, displayableId);
+            AddToDictionary(localCache, tokenCacheKey, authenticationResult);
             AuthenticationContext acWithLocalCache = new AuthenticationContext(authority, false, localCache);
             AuthenticationResult authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, credential);
-            Verify.AreEqual(authenticationResult, TokenCacheEncoding.EncodeCacheValue(authenticationResultFromCache));
+            AreAuthenticationResultsEqual(authenticationResult, authenticationResultFromCache);
 
             // Duplicate throws error
-            localCache.Add(new TokenCacheKey { Authority = authority, Resource = resource, ClientId = clientId, DisplayableId = displayableId, TenantId = tenantId }, authenticationResult);
+            authenticationResult.UserInfo.UniqueId = null;
+            AddToDictionary(localCache, new TokenCacheKey(authority, resource, clientId, TokenSubjectType.User, null, displayableId), authenticationResult);
 
             try
             {
                 var result = await acWithLocalCache.AcquireTokenAsync(resource, clientId, credential);
-#if TEST_ADAL_WINRT
-                // ADAL WinRT does not throw exception. It returns error.
+#if TEST_ADAL_WINRT_UNIT
+    // ADAL WinRT does not throw exception. It returns error.
                 Verify.AreEqual("multiple_matching_tokens_detected", result.Error);
 #else
                 Verify.Fail("Exception expected");
@@ -195,7 +194,7 @@ namespace Test.ADAL.Common.Unit
             {
                 AuthenticationContext acWithDefaultCache = new AuthenticationContext(authority, false);
                 var result = await acWithDefaultCache.AcquireTokenAsync(resource, clientId, credential);
-#if TEST_ADAL_WINRT
+#if TEST_ADAL_WINRT_UNIT
                 Verify.AreEqual("multiple_matching_tokens_detected", result.Error);
 #else
                 Verify.Fail("Exception expected");
@@ -209,93 +208,92 @@ namespace Test.ADAL.Common.Unit
             // @resource && @clientId
             acWithLocalCache = new AuthenticationContext(authority, false, localCache);
             localCache.Clear();
-            var cacheValue = CreateCacheValue();
+            var cacheValue = CreateCacheValue(uniqueId, displayableId);
             resource = Guid.NewGuid().ToString();
             clientId = Guid.NewGuid().ToString();
-            uniqueId = Guid.NewGuid().ToString();
-            displayableId = Guid.NewGuid().ToString();
 
-            TokenCacheKey tempKey = new TokenCacheKey { Authority = authority, Resource = resource, ClientId = clientId, ExpiresOn = new DateTimeOffset(DateTime.Now + TimeSpan.FromSeconds(ValidExpiresIn)) };
-            localCache.Add(tempKey, cacheValue);
-            localCache.Remove(tempKey);
-            Verify.IsFalse(localCache.ContainsKey(tempKey));
-            localCache.Add(tempKey, cacheValue);
+            TokenCacheKey tempKey = new TokenCacheKey(authority, resource, clientId, TokenSubjectType.User, null, null);
+            AddToDictionary(localCache, tempKey, cacheValue);
+            RemoveFromDictionary(localCache, tempKey);
+            Verify.IsFalse(localCache.tokenCacheDictionary.ContainsKey(tempKey));
+            AddToDictionary(localCache, tempKey, cacheValue);
 
-#if TEST_ADAL_WINRT
+#if TEST_ADAL_WINRT_UNIT
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri);
 #else
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenSilentAsync(resource, clientId);
 #endif
-            Verify.AreEqual(cacheValue, TokenCacheEncoding.EncodeCacheValue(authenticationResultFromCache));
+            VerifyAuthenticationResultsAreEqual(cacheValue, authenticationResultFromCache);
 
             // @resource && @clientId && userId
             acWithLocalCache = new AuthenticationContext(authority, false, localCache);
             localCache.Clear();
-            cacheValue = CreateCacheValue();
             resource = Guid.NewGuid().ToString();
             clientId = Guid.NewGuid().ToString();
             uniqueId = Guid.NewGuid().ToString();
             displayableId = Guid.NewGuid().ToString();
-            localCache.Add(new TokenCacheKey { Authority = authority, Resource = resource, ClientId = clientId, UniqueId = uniqueId, DisplayableId = displayableId, ExpiresOn = new DateTimeOffset(DateTime.Now + TimeSpan.FromSeconds(ValidExpiresIn)) }, cacheValue);
+            cacheValue = CreateCacheValue(uniqueId, displayableId);
+            AddToDictionary(localCache, new TokenCacheKey(authority, resource, clientId, TokenSubjectType.User, uniqueId, displayableId), cacheValue);
 
             var userId = new UserIdentifier(uniqueId, UserIdentifierType.UniqueId);
             var userIdUpper = new UserIdentifier(displayableId.ToUpper(), UserIdentifierType.RequiredDisplayableId);
 
-#if TEST_ADAL_WINRT
-            authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri, userId);
+#if TEST_ADAL_WINRT_UNIT
+            authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri, PromptBehavior.Auto, userId);
 #else
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenSilentAsync(resource, clientId, userId);
 #endif
-            Verify.AreEqual(cacheValue, TokenCacheEncoding.EncodeCacheValue(authenticationResultFromCache));
+            VerifyAuthenticationResultsAreEqual(cacheValue, authenticationResultFromCache);
 
-#if TEST_ADAL_WINRT
-            authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri, userIdUpper);
+#if TEST_ADAL_WINRT_UNIT
+            authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri, PromptBehavior.Auto, userIdUpper);
 #else
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenSilentAsync(resource, clientId, userIdUpper);
 #endif
-            Verify.AreEqual(cacheValue, TokenCacheEncoding.EncodeCacheValue(authenticationResultFromCache));
+            VerifyAuthenticationResultsAreEqual(cacheValue, authenticationResultFromCache);
 
-#if TEST_ADAL_WINRT
+#if TEST_ADAL_WINRT_UNIT
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenAsync(resource, clientId, redirectUri);
 #else
             authenticationResultFromCache = await acWithLocalCache.AcquireTokenSilentAsync(resource, clientId);
 #endif
-            Verify.AreEqual(cacheValue, TokenCacheEncoding.EncodeCacheValue(authenticationResultFromCache));
+            VerifyAuthenticationResultsAreEqual(cacheValue, authenticationResultFromCache);
 
         }
 
-        internal static void TokenCacheOperationsTest(IDictionary<TokenCacheKey, string> cacheStore)
+        internal static void TokenCacheOperationsTest(TokenCache tokenCache)
         {
-            cacheStore.Clear();
+            var cacheDictionary = tokenCache.tokenCacheDictionary;
 
-            DateTimeOffset time = DateTimeOffset.UtcNow;
-            TokenCacheKey key = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = "resourc1", ClientId = "client1", DisplayableId = "user1", ExpiresOn = time };
-            TokenCacheKey key2 = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = "resource1", ClientId = "client1", DisplayableId = "user2" };
-            TokenCacheKey key3 = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = "resourc1", ClientId = "client1", DisplayableId = "user1", ExpiresOn = time.AddTicks(1) };
+            tokenCache.Clear();
+
+            TokenCacheKey key = new TokenCacheKey("https://localhost/MockSts", "resource1", "client1", TokenSubjectType.User, null, "user1");
+            TokenCacheKey key2 = new TokenCacheKey("https://localhost/MockSts", "resource1", "client1", TokenSubjectType.User, null, "user2");
+            TokenCacheKey key3 = new TokenCacheKey("https://localhost/MockSts", "resource1", "client1", TokenSubjectType.UserPlusClient, null, "user1");
             Verify.AreNotEqual(key, key3);
 
-            string value = CreateCacheValue();
-            string value2;
+            var value = CreateCacheValue(null, "user1");
+            AuthenticationResult value2;
             do
             {
-                value2 = CreateCacheValue();
+                value2 = CreateCacheValue(null, "user2");
             }
-            while (value2 == value);            
+            while (value2 == value);
 
-            Verify.AreEqual(0, cacheStore.Count);
-            cacheStore.Add(key, value);
-            Verify.AreEqual(1, cacheStore.Count);
-            string valueInCache = cacheStore[key];
-            Verify.AreEqual(valueInCache, value);
-            Verify.AreNotEqual(valueInCache, value2);
-            cacheStore[key] = value2;
-            Verify.AreEqual(1, cacheStore.Count);
-            valueInCache = cacheStore[key];
-            Verify.AreEqual(valueInCache, value2);
-            Verify.AreNotEqual(valueInCache, value);
+            Verify.AreEqual(0, cacheDictionary.Count);
+            AddToDictionary(tokenCache, key, value);
+            Verify.AreEqual(1, cacheDictionary.Count);
+            var valueInCache = cacheDictionary[key];
+            VerifyAuthenticationResultsAreEqual(valueInCache, value);
+            VerifyAuthenticationResultsAreNotEqual(valueInCache, value2);
+            cacheDictionary[key] = value2;
+            Verify.AreEqual(1, cacheDictionary.Count);
+            valueInCache = cacheDictionary[key];
+            VerifyAuthenticationResultsAreEqual(valueInCache, value2);
+            VerifyAuthenticationResultsAreNotEqual(valueInCache, value);
             try
             {
-                cacheStore.Add(key, value);
+                AddToDictionary(tokenCache, key, value);
                 Verify.Fail("Exception expected due to duplicate key");
             }
             catch (ArgumentException)
@@ -303,20 +301,19 @@ namespace Test.ADAL.Common.Unit
                 // Expected
             }
 
-            Verify.IsFalse(cacheStore.Remove(new KeyValuePair<TokenCacheKey, string>(key, value)));
-            Verify.IsTrue(cacheStore.Remove(new KeyValuePair<TokenCacheKey, string>(key, value2)));
-            Verify.IsFalse(cacheStore.Remove(new KeyValuePair<TokenCacheKey, string>(key, value2)));
-            Verify.AreEqual(0, cacheStore.Count);
+            Verify.IsTrue(RemoveFromDictionary(tokenCache, key));
+            Verify.IsFalse(RemoveFromDictionary(tokenCache, key));
+            Verify.AreEqual(0, cacheDictionary.Count);
 
-            cacheStore.Add(key, value);
-            cacheStore.Add(key2, value2);
-            Verify.AreEqual(2, cacheStore.Count);
-            Verify.AreEqual(cacheStore[key], value);
-            Verify.AreEqual(cacheStore[key2], value2);
+            AddToDictionary(tokenCache, key, value);
+            AddToDictionary(tokenCache, key2, value2);
+            Verify.AreEqual(2, cacheDictionary.Count);
+            Verify.AreEqual(cacheDictionary[key], value);
+            Verify.AreEqual(cacheDictionary[key2], value2);
 
             try
             {
-                cacheStore.Add(null, value);
+                AddToDictionary(tokenCache, null, value);
                 Verify.Fail("Exception expected due to duplicate key");
             }
             catch (ArgumentNullException)
@@ -326,7 +323,7 @@ namespace Test.ADAL.Common.Unit
 
             try
             {
-                cacheStore[null] = value;
+                cacheDictionary[null] = value;
                 Verify.Fail("Exception expected due to duplicate key");
             }
             catch (ArgumentNullException)
@@ -334,10 +331,10 @@ namespace Test.ADAL.Common.Unit
                 // Expected
             }
 
-            Verify.IsFalse(cacheStore.IsReadOnly);
+            Verify.IsFalse(cacheDictionary.IsReadOnly);
 
-            var keys = cacheStore.Keys.ToList();
-            var values = cacheStore.Values.ToList();
+            var keys = cacheDictionary.Keys.ToList();
+            var values = cacheDictionary.Values.ToList();
             Verify.AreEqual(2, keys.Count);
             Verify.AreEqual(2, values.Count);
             if (keys[0].Equals(key))
@@ -351,21 +348,21 @@ namespace Test.ADAL.Common.Unit
                 Verify.AreEqual(keys[0], key2);
                 Verify.AreEqual(keys[1], key);
                 Verify.AreEqual(values[0], value2);
-                Verify.AreEqual(values[1], value);                
+                Verify.AreEqual(values[1], value);
             }
 
-            Verify.IsTrue(cacheStore.ContainsKey(key));
-            Verify.IsTrue(cacheStore.ContainsKey(key2));
-            Verify.IsFalse(cacheStore.ContainsKey(key3));
+            Verify.IsTrue(cacheDictionary.ContainsKey(key));
+            Verify.IsTrue(cacheDictionary.ContainsKey(key2));
+            Verify.IsFalse(cacheDictionary.ContainsKey(key3));
 
-            Verify.IsTrue(cacheStore.Contains(new KeyValuePair<TokenCacheKey, string>(key, value)));
-            Verify.IsTrue(cacheStore.Contains(new KeyValuePair<TokenCacheKey, string>(key2, value2)));
-            Verify.IsFalse(cacheStore.Contains(new KeyValuePair<TokenCacheKey, string>(key, value2)));
-            Verify.IsFalse(cacheStore.Contains(new KeyValuePair<TokenCacheKey, string>(key2, value)));
+            Verify.IsTrue(cacheDictionary.Contains(new KeyValuePair<TokenCacheKey, AuthenticationResult>(key, value)));
+            Verify.IsTrue(cacheDictionary.Contains(new KeyValuePair<TokenCacheKey, AuthenticationResult>(key2, value2)));
+            Verify.IsFalse(cacheDictionary.Contains(new KeyValuePair<TokenCacheKey, AuthenticationResult>(key, value2)));
+            Verify.IsFalse(cacheDictionary.Contains(new KeyValuePair<TokenCacheKey, AuthenticationResult>(key2, value)));
 
             try
             {
-                cacheStore.Add(new KeyValuePair<TokenCacheKey, string>(key, value));
+                AddToDictionary(tokenCache, key, value);
                 Verify.Fail("Exception expected due to duplicate key");
             }
             catch (ArgumentException)
@@ -373,20 +370,20 @@ namespace Test.ADAL.Common.Unit
                 // Expected
             }
 
-            cacheStore.Add(new KeyValuePair<TokenCacheKey, string>(key3, value));
-            Verify.AreEqual(3, cacheStore.Keys.Count);
-            Verify.IsTrue(cacheStore.ContainsKey(key3));
+            AddToDictionary(tokenCache, key3, value);
+            Verify.AreEqual(3, cacheDictionary.Keys.Count);
+            Verify.IsTrue(cacheDictionary.ContainsKey(key3));
 
-            var cacheStoreCopy = new KeyValuePair<TokenCacheKey, string>[cacheStore.Count + 1];
-            cacheStore.CopyTo(cacheStoreCopy, 1);
-            for (int i = 0; i < cacheStore.Count; i++)
+            var cacheItemsCopy = new KeyValuePair<TokenCacheKey, AuthenticationResult>[cacheDictionary.Count + 1];
+            cacheDictionary.CopyTo(cacheItemsCopy, 1);
+            for (int i = 0; i < cacheDictionary.Count; i++)
             {
-                Verify.AreEqual(cacheStoreCopy[i + 1].Value, cacheStore[cacheStoreCopy[i + 1].Key]);
+                Verify.AreEqual(cacheItemsCopy[i + 1].Value, cacheDictionary[cacheItemsCopy[i + 1].Key]);
             }
 
             try
             {
-                cacheStore.CopyTo(cacheStoreCopy, 2);
+                cacheDictionary.CopyTo(cacheItemsCopy, 2);
                 Verify.Fail("Exception expected");
             }
             catch (ArgumentException)
@@ -396,7 +393,7 @@ namespace Test.ADAL.Common.Unit
 
             try
             {
-                cacheStore.CopyTo(cacheStoreCopy, -1);
+                cacheDictionary.CopyTo(cacheItemsCopy, -1);
                 Verify.Fail("Exception expected");
             }
             catch (ArgumentOutOfRangeException)
@@ -404,151 +401,125 @@ namespace Test.ADAL.Common.Unit
                 // Expected
             }
 
-            cacheStore.Remove(key2);
-            Verify.AreEqual(2, cacheStore.Keys.Count);
+            RemoveFromDictionary(tokenCache, key2);
+            Verify.AreEqual(2, cacheDictionary.Keys.Count);
 
-            foreach (var kvp in cacheStore)
+            foreach (var kvp in cacheDictionary)
             {
                 Verify.IsTrue(kvp.Key.Equals(key) || kvp.Key.Equals(key3));
                 Verify.IsTrue(kvp.Value.Equals(value));
             }
 
-            string cacheValue;
-            Verify.IsTrue(cacheStore.TryGetValue(key, out cacheValue));
+            AuthenticationResult cacheValue;
+            Verify.IsTrue(cacheDictionary.TryGetValue(key, out cacheValue));
             Verify.AreEqual(cacheValue, value);
-            Verify.IsTrue(cacheStore.TryGetValue(key3, out cacheValue));
+            Verify.IsTrue(cacheDictionary.TryGetValue(key3, out cacheValue));
             Verify.AreEqual(cacheValue, value);
-            Verify.IsFalse(cacheStore.TryGetValue(key2, out cacheValue));
+            Verify.IsFalse(cacheDictionary.TryGetValue(key2, out cacheValue));
 
-            cacheStore.Clear();
-            Verify.AreEqual(0, cacheStore.Keys.Count);
+            cacheDictionary.Clear();
+            Verify.AreEqual(0, cacheDictionary.Keys.Count);
         }
 
-        internal static void TokenCacheCapacityTest(IDictionary<TokenCacheKey, string> cacheStore)
+        internal static void TokenCacheCapacityTest(TokenCache tokenCache)
         {
-            cacheStore.Clear();
+            tokenCache.Clear();
 
             const int MaxItemCount = 100;
-            const int MaxFieldSize = 256;  
-            const int MaxValueSize = 1024 * 20;
+            const int MaxFieldSize = 256;
             TokenCacheKey[] keys = new TokenCacheKey[MaxItemCount];
-            string[] values = new string[MaxItemCount];
+            AuthenticationResult[] values = new AuthenticationResult[MaxItemCount];
 
             for (int i = 0; i < MaxItemCount; i++)
             {
-                keys[i] = new TokenCacheKey
-                {
-                    Authority = GenerateRandomString(MaxFieldSize),
-                    Resource = GenerateRandomString(MaxFieldSize),
-                    ClientId = GenerateRandomString(MaxFieldSize),
-                    DisplayableId = GenerateRandomString(MaxFieldSize),
-                    FamilyName = GenerateRandomString(MaxFieldSize),
-                    GivenName = GenerateRandomString(MaxFieldSize),
-                    IdentityProviderName = GenerateRandomString(MaxFieldSize),
-                    ExpiresOn = DateTimeOffset.UtcNow.AddMilliseconds(Rand.Next() % 100000),
-                    TenantId = GenerateRandomString(MaxFieldSize)
-                };
+                keys[i] = new TokenCacheKey(
+                    GenerateRandomString(MaxFieldSize),
+                    GenerateRandomString(MaxFieldSize),
+                    GenerateRandomString(MaxFieldSize),
+                    TokenSubjectType.User,
+                    GenerateRandomString(MaxFieldSize),
+                    GenerateRandomString(MaxFieldSize));
 
-                values[i] = GenerateBase64EncodedRandomString(MaxValueSize);
-                cacheStore.Add(keys[i], values[i]);
+                values[i] = CreateCacheValue(null, null);
+                AddToDictionary(tokenCache, keys[i], values[i]);
             }
 
-            Verify.AreEqual(MaxItemCount, cacheStore.Count);
+            Verify.AreEqual(MaxItemCount, tokenCache.Count);
 
             for (int i = 0; i < MaxItemCount; i++)
             {
-                string cacheValue;
+                AuthenticationResult cacheValue;
                 int index = MaxItemCount - i - 1;
-                Verify.IsTrue(cacheStore.TryGetValue(keys[index], out cacheValue));
+                Verify.IsTrue(tokenCache.tokenCacheDictionary.TryGetValue(keys[index], out cacheValue));
                 Verify.AreEqual(values[index], cacheValue);
-                cacheStore.Remove(keys[index]);
-                Verify.AreEqual(index, cacheStore.Count);
+                RemoveFromDictionary(tokenCache, keys[index]);
+                Verify.AreEqual(index, tokenCache.Count);
             }
 
-            cacheStore.Clear();
+            tokenCache.Clear();
         }
 
-        internal static void TokenCacheValueSplitTest(IDictionary<TokenCacheKey, string> cacheStore)
+        internal static void TokenCacheValueSplitTest(TokenCache tokenCache)
         {
-            TokenCacheKey key = new TokenCacheKey { Authority = "https://localhost/MockSts", Resource = "resourc1", ClientId = "client1", DisplayableId = "user1", ExpiresOn = DateTimeOffset.UtcNow };
+            TokenCacheKey key = new TokenCacheKey("https://localhost/MockSts", "resourc1", "client1", TokenSubjectType.User, null, "user1");
 
-            cacheStore.Clear();
-            cacheStore.Add(key, null);
-            Verify.AreEqual(cacheStore[key], null);
+            tokenCache.Clear();
+            AddToDictionary(tokenCache, key, null);
+            Verify.AreEqual(tokenCache.tokenCacheDictionary[key], null);
             for (int len = 0; len < 3000; len++)
             {
-                string value = GenerateRandomString(len);
-                cacheStore.Clear();
-                cacheStore.Add(key, value);
-                Verify.AreEqual(cacheStore[key], value);
+                var value = CreateCacheValue(null, "user1");
+                tokenCache.Clear();
+                AddToDictionary(tokenCache, key, value);
+                Verify.AreEqual(tokenCache.tokenCacheDictionary[key], value);
             }
         }
 
-        public static string CreateCacheValue()
+        public static AuthenticationResult CreateCacheValue(string uniqueId, string displayableId)
         {
             string refreshToken = string.Format("RefreshToken{0}", Rand.Next());
-            return TokenCacheEncoding.EncodeCacheValue(new AuthenticationResult(null, ValidAccessToken, refreshToken, new DateTimeOffset(DateTime.Now + TimeSpan.FromSeconds(ValidExpiresIn))));
+            return new AuthenticationResult(null, ValidAccessToken, refreshToken, new DateTimeOffset(DateTime.Now + TimeSpan.FromSeconds(ValidExpiresIn)))
+                {
+                    UserInfo = new UserInfo { UniqueId = uniqueId, DisplayableId = displayableId }
+                };
         }
 
         public static void CheckPublicGetSets()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
-            TokenCacheKey tokenCacheKey = new TokenCacheKey()
-            {
-                Authority = "Authority",
-                ClientId = "ClientId",
-                ExpiresOn = now,
-                FamilyName = "FamilyName",
-                GivenName = "GivenName",
-                IdentityProviderName = "IdentityProviderName",
-                IsMultipleResourceRefreshToken = false,
-                Resource = "Resource",
-                TenantId = "TenantId",
-                UniqueId = "UniqueId",
-                DisplayableId = "DisplayableId",
-            };
+            TokenCacheKey tokenCacheKey = new TokenCacheKey("Authority", "Resource", "ClientId", TokenSubjectType.User, "UniqueId", "DisplayableId");
 
             Verify.IsTrue(tokenCacheKey.Authority == "Authority");
             Verify.IsTrue(tokenCacheKey.ClientId == "ClientId");
-            Verify.IsTrue(tokenCacheKey.ExpiresOn == now);
-            Verify.IsTrue(tokenCacheKey.FamilyName == "FamilyName");
-            Verify.IsTrue(tokenCacheKey.GivenName == "GivenName");
-            Verify.IsTrue(tokenCacheKey.IdentityProviderName == "IdentityProviderName");
-            Verify.IsTrue(tokenCacheKey.IsMultipleResourceRefreshToken == false);
             Verify.IsTrue(tokenCacheKey.Resource == "Resource");
-            Verify.IsTrue(tokenCacheKey.TenantId == "TenantId");
             Verify.IsTrue(tokenCacheKey.UniqueId == "UniqueId");
             Verify.IsTrue(tokenCacheKey.DisplayableId == "DisplayableId");
+            Verify.IsTrue(tokenCacheKey.TokenSubjectType == TokenSubjectType.User);
         }
 
-        private static void VerifyCacheValuesAreEqual(string value1, string value2)
+        private static void VerifyCacheItemCount(TokenCache cache, int expectedCount)
         {
-            Verify.AreEqual(value1, value2);
+            Verify.AreEqual(cache.Count, expectedCount, null);
         }
 
-        private static void VerifyCacheItemCount(IDictionary<TokenCacheKey, string> cache, int expectedCount)
-        {
-            VerifyCacheItems(cache, expectedCount, null);
-        }
-
-        private static void VerifyCacheItems(IDictionary<TokenCacheKey, string> cache, int expectedCount, TokenCacheKey firstKey)
+        private static void VerifyCacheItems(TokenCache cache, int expectedCount, TokenCacheKey firstKey)
         {
             VerifyCacheItems(cache, expectedCount, firstKey, null);
         }
 
-        private static void VerifyCacheItems(IDictionary<TokenCacheKey, string> cache, int expectedCount, TokenCacheKey firstKey, TokenCacheKey secondKey)
+        private static void VerifyCacheItems(TokenCache cache, int expectedCount, TokenCacheKey firstKey, TokenCacheKey secondKey)
         {
-            var keys = cache.Keys.ToList();
-            Verify.AreEqual(expectedCount, keys.Count);
+            var items = cache.ReadItems().ToList();
+            Verify.AreEqual(expectedCount, items.Count);
 
             if (firstKey != null)
             {
-                Verify.IsTrue(keys.Count(firstKey.Equals) == 1);
+                Verify.IsTrue(AreEqual(items[0], firstKey) || AreEqual(items[0], secondKey));
             }
 
             if (secondKey != null)
             {
-                Verify.IsTrue(keys.Count(secondKey.Equals) == 1);
+                Verify.IsTrue(AreEqual(items[1], firstKey) || AreEqual(items[1], secondKey));
             }
         }
 
@@ -571,6 +542,66 @@ namespace Test.ADAL.Common.Unit
         public static string GenerateBase64EncodedRandomString(int len)
         {
             return EncodingHelper.Base64Encode(GenerateRandomString(len)).Substring(0, len);
+        }
+
+        private static bool AreEqual(TokenCacheItem item, TokenCacheKey key)
+        {
+            return item.Match(key);
+        }
+
+        private static void VerifyAuthenticationResultsAreEqual(AuthenticationResult result1, AuthenticationResult result2)
+        {
+            Verify.IsTrue(AreAuthenticationResultsEqual(result1, result2));
+        }
+
+        private static void VerifyAuthenticationResultsAreNotEqual(AuthenticationResult result1, AuthenticationResult result2)
+        {
+            Verify.IsFalse(AreAuthenticationResultsEqual(result1, result2));
+        }
+
+        private static bool AreAuthenticationResultsEqual(AuthenticationResult result1, AuthenticationResult result2)
+        {
+            return (AreStringsEqual(result1.AccessToken, result2.AccessToken)
+                    && AreStringsEqual(result1.AccessTokenType, result2.AccessTokenType)
+                    && AreStringsEqual(result1.IdToken, result2.IdToken)
+                    && result1.IsMultipleResourceRefreshToken == result2.IsMultipleResourceRefreshToken
+                    && AreStringsEqual(result1.RefreshToken, result2.RefreshToken)
+                    && AreStringsEqual(result1.TenantId, result2.TenantId)
+                    && (result1.UserInfo == null || result2.UserInfo == null || 
+                        (AreStringsEqual(result1.UserInfo.DisplayableId, result2.UserInfo.DisplayableId)
+                        && AreStringsEqual(result1.UserInfo.FamilyName, result2.UserInfo.FamilyName)
+                        && AreStringsEqual(result1.UserInfo.GivenName, result2.UserInfo.GivenName)
+                        && AreStringsEqual(result1.UserInfo.IdentityProvider, result2.UserInfo.IdentityProvider) 
+                        && result1.UserInfo.PasswordChangeUrl == result2.UserInfo.PasswordChangeUrl
+                        && result1.UserInfo.PasswordExpiresOn == result2.UserInfo.PasswordExpiresOn 
+                        && result1.UserInfo.UniqueId == result2.UserInfo.UniqueId)));
+        }
+
+        private static bool AreStringsEqual(string str1, string str2)
+        {
+            return (str1 == str2 || string.IsNullOrEmpty(str1) && string.IsNullOrEmpty(str2));
+        }
+
+        private static void AddToDictionary(TokenCache tokenCache, TokenCacheKey key, AuthenticationResult value)
+        {
+            tokenCache.OnBeforeAccess(null);
+            tokenCache.OnBeforeWrite(null);
+            tokenCache.tokenCacheDictionary.Add(key, value);
+            tokenCache.HasStateChanged = true;
+            tokenCache.OnAfterAccess(null);
+
+        }
+
+        private static bool RemoveFromDictionary(TokenCache tokenCache, TokenCacheKey key)
+        {
+            bool result;
+            tokenCache.OnBeforeAccess(null);
+            tokenCache.OnBeforeWrite(null);
+            result = tokenCache.tokenCacheDictionary.Remove(key);
+            tokenCache.HasStateChanged = true;
+            tokenCache.OnAfterAccess(null);
+
+            return result;
         }
     }
 }

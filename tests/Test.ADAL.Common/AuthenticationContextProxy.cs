@@ -17,6 +17,9 @@
 //----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Test.ADAL.Common
@@ -26,16 +29,14 @@ namespace Test.ADAL.Common
         private const string FixedCorrelationId = "2ddbba59-1a04-43fb-b363-7fb0ae785030";
         private readonly AuthenticationContext context;
 
-        public AuthenticationContextProxy(string authority)
+        internal void VerifySingleItemInCache(AuthenticationResultProxy result, StsType stsType)
         {
-            this.context = new AuthenticationContext(authority);
-            this.context.CorrelationId = new Guid(FixedCorrelationId);
-        }
-
-        public AuthenticationContextProxy(string authority, bool validateAuthority)
-        {
-            this.context = new AuthenticationContext(authority, validateAuthority);
-            this.context.CorrelationId = new Guid(FixedCorrelationId);
+            List<TokenCacheItem> items = this.context.TokenCache.ReadItems().ToList();
+            Verify.AreEqual(1, items.Count);
+            Verify.AreEqual(result.AccessToken, items[0].AccessToken);
+            Verify.AreEqual(result.RefreshToken, items[0].RefreshToken);
+            Verify.AreEqual(result.IdToken ?? string.Empty, items[0].IdToken ?? string.Empty);
+            Verify.IsTrue(stsType == StsType.ADFS || items[0].IdToken != null);
         }
     }
 }

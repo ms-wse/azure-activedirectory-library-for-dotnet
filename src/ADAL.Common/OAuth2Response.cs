@@ -60,6 +60,9 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataMember(Name = OAuthReservedClaim.ErrorDescription, IsRequired = false)]
         public string ErrorDescription { get; set; }
 
+        [DataMember(Name = OAuthReservedClaim.ErrorCodes, IsRequired = false)]
+        public string[] ErrorCodes { get; set; }
+
         [DataMember(Name = CorrelationIdClaim, IsRequired = false)]
         public string CorrelationId { get; set; }
     }
@@ -88,13 +91,22 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataMember(Name = IdTokenClaim.Email, IsRequired = false)]
         public string Email { get; set; }
 
+        [DataMember(Name = IdTokenClaim.PasswordExpiration, IsRequired = false)]
+        public long PasswordExpiration { get; set; }
+
+        [DataMember(Name = IdTokenClaim.PasswordChangeUrl, IsRequired = false)]
+        public string PasswordChangeUrl { get; set; }
+
         [DataMember(Name = IdTokenClaim.IdentityProvider, IsRequired = false)]
         public string IdentityProvider { get; set; }
+
+        [DataMember(Name = IdTokenClaim.Issuer, IsRequired = false)]
+        public string Issuer { get; set; }
     }
 
     internal static class OAuth2Response
     {
-        public static AuthenticationResult ParseTokenResponse(TokenResponse tokenResponse)
+        public static AuthenticationResult ParseTokenResponse(TokenResponse tokenResponse, CallState callState)
         {
             AuthenticationResult result;
 
@@ -104,6 +116,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
                 result = new AuthenticationResult(tokenResponse.TokenType, tokenResponse.AccessToken, tokenResponse.RefreshToken, expiresOn)
                     {
+#if ADAL_NET
+                        // This is only needed for AcquireTokenByAuthorizationCode in which parameter resource is optional and we need
+                        // to get it from the STS response.
+                        Resource = tokenResponse.Resource,
+#endif                        
                         IsMultipleResourceRefreshToken = (!string.IsNullOrWhiteSpace(tokenResponse.RefreshToken) && !string.IsNullOrWhiteSpace(tokenResponse.Resource)),
                     };
 
@@ -134,18 +151,33 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
                     string givenName = idToken.GivenName;
                     string familyName = idToken.FamilyName;
-                    string identityProvider = idToken.IdentityProvider;
+                    string identityProvider = idToken.IdentityProvider ?? idToken.Issuer;
+                    DateTimeOffset? passwordExpiresOffest = null;
+                    if (idToken.PasswordExpiration > 0)
+                    {
+                        passwordExpiresOffest = DateTime.UtcNow + TimeSpan.FromSeconds(idToken.PasswordExpiration);
+                    }
 
-                    result.UpdateTenantAndUserInfo(tenantId, new UserInfo { UniqueId = uniqueId, DisplayableId = displayableId, GivenName = givenName, FamilyName = familyName, IdentityProvider = identityProvider });
+                    Uri changePasswordUri = null;
+                    if (!string.IsNullOrEmpty(idToken.PasswordChangeUrl))
+                    {
+                        changePasswordUri = new Uri(idToken.PasswordChangeUrl);
+                    }
+
+                    result.UpdateTenantAndUserInfo(tenantId, tokenResponse.IdToken, new UserInfo { UniqueId = uniqueId, DisplayableId = displayableId, GivenName = givenName, FamilyName = familyName, IdentityProvider = identityProvider, PasswordExpiresOn = passwordExpiresOffest, PasswordChangeUrl = changePasswordUri });
                 }
             }
             else if (tokenResponse.Error != null)
             {
-                result = PlatformSpecificHelper.ProcessServiceError(tokenResponse.Error, tokenResponse.ErrorDescription);
+                var ex = new AdalServiceException(tokenResponse.Error, tokenResponse.ErrorDescription);
+                Logger.LogException(callState, ex);
+                throw ex;
             }
             else
             {
-                result = PlatformSpecificHelper.ProcessServiceError(AdalError.Unknown, AdalErrorMessage.Unknown);
+                var ex = new AdalServiceException(AdalError.Unknown, AdalErrorMessage.Unknown);
+                Logger.LogException(callState, ex);
+                throw ex;
             }
 
             return result;
@@ -189,7 +221,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 return new TokenResponse 
                     { 
                         Error = AdalError.ServiceReturnedError,
-                        ErrorDescription = AdalError.ServiceReturnedError 
+                        ErrorDescription = AdalErrorMessage.ServiceReturnedError 
                     };
             }
 

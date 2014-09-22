@@ -30,10 +30,10 @@ namespace Test.ADAL.WinRT.Unit
     {
         [TestMethod]
         [TestCategory("AdalWinRTUnit")]
-        //[Description("Test to store in default token cache store")]
-        public void DefaultTokenCacheStoreTest()
+        //[Description("Test to store in default token cache")]
+        public void DefaultTokenCacheTest()
         {
-            TokenCacheTests.DefaultTokenCacheStoreTest();
+            TokenCacheTests.DefaultTokenCacheTest();
         }
 
         [TestMethod]
@@ -49,7 +49,7 @@ namespace Test.ADAL.WinRT.Unit
         //[Description("Test for Cache Operations")]
         public void TokenCacheOperationsTest()
         {
-            TokenCacheTests.TokenCacheOperationsTest(new DefaultTokenCacheStore());
+            TokenCacheTests.TokenCacheOperationsTest(new TokenCache());
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace Test.ADAL.WinRT.Unit
         //[Description("Test for Token Cache Capacity")]
         public void TokenCacheCapacityTest()
         {
-            TokenCacheTests.TokenCacheCapacityTest(new DefaultTokenCacheStore());
+            TokenCacheTests.TokenCacheCapacityTest(new TokenCache());
         }
 
         [TestMethod]
@@ -65,7 +65,7 @@ namespace Test.ADAL.WinRT.Unit
         //[Description("Test for Token Cache Value Split")]
         public void TokenCacheValueSplitTest()
         {
-            TokenCacheTests.TokenCacheValueSplitTest(new DefaultTokenCacheStore());
+            TokenCacheTests.TokenCacheValueSplitTest(new TokenCache());
         }
 
         [TestMethod]

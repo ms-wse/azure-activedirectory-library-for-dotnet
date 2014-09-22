@@ -33,8 +33,6 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
         private const int UIWidth = 566;
 
-        private const int UIHeightGap = 310;
-
         private Panel webBrowserPanel;
         private readonly CustomWebBrowser webBrowser;
 
@@ -44,16 +42,61 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
         protected IWin32Window ownerWindow;
 
-        private static readonly int UIHeight = Math.Max(Screen.PrimaryScreen.WorkingArea.Height - UIHeightGap, 160);
+        private Keys key = Keys.None;
+
+        /// <summary>
+        /// From MSDN (http://msdn.microsoft.com/en-us/library/ie/dn720860(v=vs.85).aspx): 
+        /// The net session count tracks the number of instances of the web browser control. 
+        /// When a web browser control is created, the net session count is incremented. When the control 
+        /// is destroyed, the net session count is decremented. When the net session count reaches zero, 
+        /// the session cookies for the process are cleared. SetQueryNetSessionCount can be used to prevent 
+        /// the session cookies from being cleared for applications where web browser controls are being created 
+        /// and destroyed throughout the lifetime of the application. (Because the application lives longer than 
+        /// a given instance, session cookies must be retained for a longer periods of time.
+        /// </summary>
+        static WindowsFormsWebAuthenticationDialogBase()
+        {
+            int sessionCount = NativeMethods.SetQueryNetSessionCount(NativeMethods.SessionOp.SESSION_QUERY);
+            if (sessionCount == 0)
+            {
+                NativeMethods.SetQueryNetSessionCount(NativeMethods.SessionOp.SESSION_INCREMENT);
+            }
+        }
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        protected WindowsFormsWebAuthenticationDialogBase()
+        protected WindowsFormsWebAuthenticationDialogBase(object ownerWindow)
         {
-            this.webBrowser = new CustomWebBrowser();
+            if (ownerWindow == null)
+            {
+                this.ownerWindow = null;
+            }
+            else if (ownerWindow is IWin32Window)
+            {
+                this.ownerWindow = (IWin32Window)ownerWindow;
+            }
+            else if (ownerWindow is IntPtr)
+            {
+                this.ownerWindow = new WindowsFormsWin32Window { Handle = (IntPtr)ownerWindow };
+            }
+            else
+            {
+                throw new AdalException(AdalError.InvalidOwnerWindowType, 
+                    "Invalid owner window type. Expected types are IWin32Window or IntPtr (for window handle).");
+            }
 
+            this.webBrowser = new CustomWebBrowser();
+            this.webBrowser.PreviewKeyDown += webBrowser_PreviewKeyDown;
             this.InitializeComponent();
+        }
+        
+        private void webBrowser_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Back)
+            {
+                key = Keys.Back;
+            }
         }
 
         /// <summary>
@@ -67,36 +110,6 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             }
         }
 
-        public object OwnerWindow
-        {
-            get
-            {
-                return this.ownerWindow;
-            }
-
-            set
-            {
-                IWin32Window window = value as IWin32Window;
-                if (window != null)
-                {
-                    this.ownerWindow = window;
-                }
-                else if (value is IntPtr)
-                {
-                    this.ownerWindow = new WindowsFormsWin32Window { Handle = (IntPtr)value };
-                }
-                else if (null == value)
-                {
-                    this.ownerWindow = null;
-                }
-                else
-                {
-                    throw new AdalException(AdalError.InvalidOwnerWindowType,
-                        "Invalid owner window type. Expected types are IWin32Window or IntPtr (for window handle).");
-                }
-            }
-        }
-
         protected virtual void WebBrowserNavigatingHandler(object sender, WebBrowserNavigatingEventArgs e)
         {
             if (this.webBrowser.IsDisposed)
@@ -105,6 +118,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
                 // it just for safety.
                 e.Cancel = true;
                 return;
+            }
+
+            if (key == Keys.Back)
+            {
+                //navigation is being done via back key. This needs to be disabled.
+                key = Keys.None;
+                e.Cancel = true;
             }
 
             // we cancel further processing, if we reached final URL.
@@ -203,6 +223,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
         private void InitializeComponent()
         {
+            Screen screen = (this.ownerWindow != null) ? Screen.FromHandle(this.ownerWindow.Handle) : Screen.PrimaryScreen;
+
+            // Window height is set to 70% of the screen height.
+            int uiHeight = (int)(Math.Max(screen.WorkingArea.Height, 160) * 70.0 / DpiHelper.ZoomPercent);
             this.webBrowserPanel = new Panel();
             this.webBrowserPanel.SuspendLayout();
             this.SuspendLayout();
@@ -226,7 +250,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             this.webBrowserPanel.BorderStyle = BorderStyle.None;
             this.webBrowserPanel.Location = new Point(0, 0);
             this.webBrowserPanel.Name = "webBrowserPanel";
-            this.webBrowserPanel.Size = new Size(UIWidth, UIHeight);
+            this.webBrowserPanel.Size = new Size(UIWidth, uiHeight);
             this.webBrowserPanel.TabIndex = 2;
 
             // 
@@ -234,11 +258,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             // 
             this.AutoScaleDimensions = new SizeF(6, 13);
             this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(UIWidth, UIHeight);
+            this.ClientSize = new Size(UIWidth, uiHeight);
             this.Controls.Add(this.webBrowserPanel);
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.Name = "BrowserAuthenticationWindow";
-            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Move the window to the center of the parent window only if owner window is set.
+            this.StartPosition = (this.ownerWindow != null) ? FormStartPosition.CenterParent : FormStartPosition.CenterScreen;
             this.Text = string.Empty;
             this.ShowIcon = false;
             this.MaximizeBox = false;
@@ -246,14 +272,12 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
             // If we don't have an owner we need to make sure that the pop up browser 
             // window is in the task bar so that it can be selected with the mouse.
-            //
-            this.ShowInTaskbar = null == this.OwnerWindow;
+            this.ShowInTaskbar = (null == this.ownerWindow);
 
             this.webBrowserPanel.ResumeLayout(false);
             this.ResumeLayout(false);
         }
-
-
+        
         private sealed class WindowsFormsWin32Window : IWin32Window
         {
             public IntPtr Handle { get; set; }
@@ -281,6 +305,54 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             return new AdalServiceException(
                 AdalError.AuthenticationUiFailed,
                 string.Format(CultureInfo.InvariantCulture, "The browser based authentication dialog failed to complete for an unkown reason. StatusCode: {0}", statusCode)) { StatusCode = statusCode };
+        }
+
+        protected static class DpiHelper
+        {
+            static DpiHelper()
+            {
+                const double DefaultDpi = 96.0;
+
+                const int LOGPIXELSX = 88;
+                const int LOGPIXELSY = 90;
+
+                double deviceDpiX;
+                double deviceDpiY;
+
+                IntPtr dC = NativeWrapper.NativeMethods.GetDC(IntPtr.Zero);
+                if (dC != IntPtr.Zero)
+                {
+                    deviceDpiX = NativeWrapper.NativeMethods.GetDeviceCaps(dC, LOGPIXELSX);
+                    deviceDpiY = NativeWrapper.NativeMethods.GetDeviceCaps(dC, LOGPIXELSY);
+                    NativeWrapper.NativeMethods.ReleaseDC(IntPtr.Zero, dC);
+                }
+                else
+                {
+                    deviceDpiX = DefaultDpi;
+                    deviceDpiY = DefaultDpi;
+                }
+
+                int zoomPercentX = (int)(100 * (deviceDpiX / DefaultDpi));
+                int zoomPercentY = (int)(100 * (deviceDpiY / DefaultDpi));
+
+                ZoomPercent = Math.Min(zoomPercentX, zoomPercentY);
+            }
+
+            public static int ZoomPercent { get; private set; }
+        }
+
+
+        internal static class NativeMethods
+        {
+            internal enum SessionOp 
+            {
+                SESSION_QUERY = 0,
+                SESSION_INCREMENT,
+                SESSION_DECREMENT
+            };
+
+            [DllImport("IEFRAME.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
+            internal static extern int SetQueryNetSessionCount(SessionOp sessionOp);        
         }
     }
 }

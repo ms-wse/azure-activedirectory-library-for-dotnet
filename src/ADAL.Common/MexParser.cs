@@ -42,7 +42,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public static async Task<Uri> FetchWsTrustAddressFromMexAsync(string federationMetadataUrl, UserAuthType userAuthType, CallState callState)
         {
             XDocument mexDocument = await FetchMexAsync(federationMetadataUrl, callState);
-            return ExtractWsTrustAddressFromMex(mexDocument, userAuthType);
+            return ExtractWsTrustAddressFromMex(mexDocument, userAuthType, callState);
         }
 
         internal static async Task<XDocument> FetchMexAsync(string federationMetadataUrl, CallState callState)
@@ -60,17 +60,21 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
             catch (WebException ex)
             {
-                throw new AdalServiceException(AdalError.AccessingWsMetadataExchangeFailed, ex);
+                var serviceEx = new AdalServiceException(AdalError.AccessingWsMetadataExchangeFailed, ex);
+                Logger.LogException(callState, serviceEx);
+                throw serviceEx;
             }
             catch (XmlException ex)
             {
-                throw new AdalException(AdalError.ParsingWsMetadataExchangeFailed, ex);
+                var adalEx = new AdalException(AdalError.ParsingWsMetadataExchangeFailed, ex);
+                Logger.LogException(callState, adalEx);
+                throw adalEx;
             }
 
             return mexDocument;
         }
 
-        internal static Uri ExtractWsTrustAddressFromMex(XDocument mexDocument, UserAuthType userAuthType)
+        internal static Uri ExtractWsTrustAddressFromMex(XDocument mexDocument, UserAuthType userAuthType, CallState callState)
         {
             Uri url;
 
@@ -85,14 +89,24 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 {
                     url = policy.Url;
                 }
+                else if (userAuthType == UserAuthType.IntegratedAuth)
+                {
+                    var ex = new AdalException(AdalError.IntegratedAuthFailed, new AdalException(AdalError.WsTrustEndpointNotFoundInMetadataDocument));
+                    Logger.LogException(callState, ex);
+                    throw ex;
+                }
                 else
                 {
-                    throw new AdalException(AdalError.WsTrustEndpointNotFoundInMetadataDocument);                    
+                    var ex = new AdalException(AdalError.WsTrustEndpointNotFoundInMetadataDocument);
+                    Logger.LogException(callState, ex);
+                    throw ex;
                 }
             }
             catch (XmlException ex)
             {
-                throw new AdalException(AdalError.ParsingWsMetadataExchangeFailed, ex);
+                var adalEx = new AdalException(AdalError.ParsingWsMetadataExchangeFailed, ex);
+                Logger.LogException(callState, adalEx);
+                throw adalEx;
             }
 
             return url;

@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <DefineConstants>TEST_ADAL_NET</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -20,7 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,7 +30,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -100,9 +101,6 @@
     <Compile Include="..\Test.ADAL.Common\Sts.cs">
       <Link>Common\Sts.cs</Link>
     </Compile>
-    <Compile Include="..\Test.ADAL.Common\TestTokenCacheStoreBase.cs">
-      <Link>Common\TestTokenCacheStoreBase.cs</Link>
-    </Compile>
     <Compile Include="..\Test.ADAL.Common\UISupplier.cs">
       <Link>Common\UISupplier.cs</Link>
     </Compile>
@@ -120,9 +118,6 @@
     </Compile>
     <Compile Include="..\Test.ADAL.NET\AuthenticationParametersProxy.cs">
       <Link>AuthenticationParametersProxy.cs</Link>
-    </Compile>
-    <Compile Include="..\Test.ADAL.NET\X509CertificateCredentialProxy.cs">
-      <Link>X509CertificateCredentialProxy.cs</Link>
     </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

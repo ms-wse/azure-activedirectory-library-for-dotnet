@@ -69,7 +69,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// This value is calculated based on current UTC time measured locally and the value expiresIn received from the service.
         /// </summary>
         [DataMember]
-        public DateTimeOffset ExpiresOn { get; private set; }
+        public DateTimeOffset ExpiresOn { get; internal set; }
 
         /// <summary>
         /// Gets an identifier for the tenant the token was acquired from. This property will be null if tenant information is not returned by the service.
@@ -81,7 +81,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// Gets user information including user Id. Some elements in UserInfo might be null if not returned by the service.
         /// </summary>
         [DataMember]
-        public UserInfo UserInfo { get; private set; }
+        public UserInfo UserInfo { get; internal set; }
+
+        /// <summary>
+        /// Gets the entire Id Token if returned by the service or null if no Id Token is returned.
+        /// </summary>
+        [DataMember]
+        public string IdToken { get; internal set; }
 
         /// <summary>
         /// Gets a value indicating whether the refresh token can be used for requesting access token for other resources.
@@ -132,9 +138,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return serializedObject;
         }
 
-        internal void UpdateTenantAndUserInfo(string tenantId, UserInfo userInfo)
+        internal void UpdateTenantAndUserInfo(string tenantId, string idToken, UserInfo userInfo)
         {
             this.TenantId = tenantId;
+            this.IdToken = idToken;
             if (userInfo != null)
             {
                 this.UserInfo = new UserInfo(userInfo);

@@ -18,11 +18,10 @@
 
 using System;
 using System.ComponentModel;
-using System.DirectoryServices.ActiveDirectory;
 using System.Globalization;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Security.Principal;
 using System.Text;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
@@ -40,64 +39,35 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return !string.IsNullOrWhiteSpace(value) ? value : null;
         }
 
-        public static AuthenticationResult ProcessServiceError(string error, string errorDescription)
-        {
-            throw new AdalServiceException(error, errorDescription);
-        }
-
         public static string PlatformSpecificToLower(this string input)
         {
             return input.ToLower(CultureInfo.InvariantCulture);
         }
 
-        public static bool IsDomainJoined()
-        {
-            bool returnValue = true;
-            try
-            {
-                Domain.GetComputerDomain();
-            }
-            catch (ActiveDirectoryObjectNotFoundException)
-            {
-                //if the machine is not domain joined or the request times out, this exception is thrown.
-                returnValue = false;
-            }
-            return returnValue;
-        }
-
-        public static bool IsUserLocal()
-        {
-            string prefix = WindowsIdentity.GetCurrent().Name.Split('\\')[0].ToUpperInvariant();
-            return prefix.Equals(Environment.MachineName.ToUpperInvariant());
-        }
-
         public static string GetUserPrincipalName()
         {
-            string userId = System.DirectoryServices.AccountManagement.UserPrincipal.Current.UserPrincipalName;
-
-            // On some machines, UserPrincipalName returns null
-            if (string.IsNullOrWhiteSpace(userId))
+            const int NameUserPrincipal = 8;
+            uint userNameSize = 0;
+            NativeMethods.GetUserNameEx(NameUserPrincipal, null, ref userNameSize);
+            if (userNameSize == 0)
             {
-                const int NameUserPrincipal = 8;
-                uint userNameSize = 0;
-                if (!NativeMethods.GetUserNameEx(NameUserPrincipal, null, ref userNameSize))
-                {
-                    throw new AdalException(AdalError.GetUserNameFailed, new Win32Exception(Marshal.GetLastWin32Error()));
-                }
-
-                StringBuilder sb = new StringBuilder((int)userNameSize);
-                if (!NativeMethods.GetUserNameEx(NameUserPrincipal, sb, ref userNameSize))
-                {
-                    throw new AdalException(AdalError.GetUserNameFailed, new Win32Exception(Marshal.GetLastWin32Error()));                    
-                }
-
-                userId = sb.ToString();
+                var ex = new AdalException(AdalError.GetUserNameFailed, new Win32Exception(Marshal.GetLastWin32Error()));
+                Logger.LogException(null, ex);
+                throw ex;
             }
 
-            return userId;
+            StringBuilder sb = new StringBuilder((int) userNameSize);
+            if (!NativeMethods.GetUserNameEx(NameUserPrincipal, sb, ref userNameSize))
+            {
+                var ex = new AdalException(AdalError.GetUserNameFailed, new Win32Exception(Marshal.GetLastWin32Error()));
+                Logger.LogException(null, ex);
+                throw ex;
+            }
+
+            return sb.ToString();
         }
 
-        internal static string CreateSha256Hash(string input)
+        public static string CreateSha256Hash(string input)
         {
             SHA256 sha256 = SHA256Managed.Create();
             UTF8Encoding encoding = new UTF8Encoding();
@@ -107,9 +77,14 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return hash;
         }
 
+        public static void CloseHttpWebResponse(WebResponse response)
+        {
+            response.Close();
+        }
+
         private static class NativeMethods
         {
-            [DllImport("secur32.dll", CharSet = CharSet.Unicode, SetLastError=true)]
+            [DllImport("secur32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.U1)]
             public static extern bool GetUserNameEx(int nameFormat, StringBuilder userName, ref uint userNameSize);
         }

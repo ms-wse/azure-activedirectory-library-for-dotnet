@@ -32,23 +32,25 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
         private readonly JWTPayload payload;
 
-        public JsonWebToken(string audience, string issuer, uint allowedLifetimeInSeconds, string subject = null)
+        public JsonWebToken(ClientAssertionCertificate certificate, string audience)
         {
             DateTime validFrom = NetworkPlugin.RequestCreationHelper.GetJsonWebTokenValidFrom();
 
-            DateTime validTo = validFrom + TimeSpan.FromSeconds(allowedLifetimeInSeconds);
+            DateTime validTo = validFrom + TimeSpan.FromSeconds(JsonWebTokenConstants.JwtToAadLifetimeInSeconds);
 
             this.payload = new JWTPayload
                 {
                     Audience = audience,
-                    Issuer = issuer,
+                    Issuer = certificate.ClientId,
                     ValidFrom = DateTimeHelper.ConvertToTimeT(validFrom),
                     ValidTo = DateTimeHelper.ConvertToTimeT(validTo),
-                    Subject = subject
+                    Subject = certificate.ClientId
                 };
+
+            this.payload.JwtIdentifier = NetworkPlugin.RequestCreationHelper.GetJsonWebTokenId();
         }
 
-        public ClientAssertion Sign(X509CertificateCredential credential)
+        public ClientAssertion Sign(ClientAssertionCertificate credential)
         {
             // Base64Url encoded header and claims
             string token = this.Encode(credential);     
@@ -56,10 +58,12 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             // Length check before sign
             if (MaxTokenLength < token.Length)
             {
-                throw new AdalException(AdalError.EncodedTokenTooLong);
+                var ex = new AdalException(AdalError.EncodedTokenTooLong);
+                Logger.LogException(null, ex);
+                throw ex;
             }
 
-            return new ClientAssertion(string.Concat(token, ".", UrlEncodeSegment(credential.Sign(token))), OAuthAssertionType.JwtBearer);
+            return new ClientAssertion(this.payload.Issuer, string.Concat(token, ".", UrlEncodeSegment(credential.Sign(token))));
         }
 
         private static string EncodeSegment(string segment)
@@ -82,13 +86,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
-        private static string EncodeHeaderToJson(X509CertificateCredential credential)
+        private static string EncodeHeaderToJson(ClientAssertionCertificate credential)
         {
             JWTHeaderWithCertificate header = new JWTHeaderWithCertificate(credential);
             return EncodeToJson(header);
         }
 
-        private string Encode(X509CertificateCredential credential)
+        private string Encode(ClientAssertionCertificate credential)
         {
             // Header segment
             string jsonHeader = EncodeHeaderToJson(credential);
@@ -111,9 +115,9 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         [DataContract]
         internal class JWTHeader
         {
-            protected X509CertificateCredential Credential { get; private set; }
+            protected ClientAssertionCertificate Credential { get; private set; }
 
-            public JWTHeader(X509CertificateCredential credential)
+            public JWTHeader(ClientAssertionCertificate credential)
             {
                 this.Credential = credential;
             }
@@ -167,12 +171,15 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             [DataMember(Name = JsonWebTokenConstants.ReservedClaims.Subject, IsRequired = false,
                 EmitDefaultValue = false)]
             public string Subject { get; set; }
+
+            [DataMember(Name = JsonWebTokenConstants.ReservedClaims.JwtIdentifier, IsRequired=false, EmitDefaultValue=false)]
+            public string JwtIdentifier { get; set; }
         }
 
         [DataContract]
         internal sealed class JWTHeaderWithCertificate : JWTHeader
         {
-            public JWTHeaderWithCertificate(X509CertificateCredential credential)
+            public JWTHeaderWithCertificate(ClientAssertionCertificate credential)
                 : base(credential)
             {
             }

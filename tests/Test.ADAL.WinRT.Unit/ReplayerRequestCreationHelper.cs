@@ -24,6 +24,11 @@ namespace Test.ADAL.WinRT.Unit
 {
     class ReplayerRequestCreationHelper : ReplayerBase, IRequestCreationHelper
     {
+        public bool RecordClientMetrics
+        {
+            get { return false; }
+        }
+
         public void AddAdalIdParameters(IDictionary<string, string> parameters)
         {
             
@@ -38,6 +43,11 @@ namespace Test.ADAL.WinRT.Unit
             }
 
             throw new InvalidOperationException("Unexpected missing dictionary key");
+        }
+
+        public string GetJsonWebTokenId()
+        {
+            throw new NotImplementedException("AcquireToken using JWT is not supported in ADAL WinRT");
         }
     }
 }

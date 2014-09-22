@@ -20,13 +20,13 @@ using System.Xml.Linq;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
-#if ADAL_WINRT
-    internal static partial class AdalError
-#else
+#if ADAL_NET
     /// <summary>
     /// Error code returned as a property in AdalException
     /// </summary>
     public static class AdalError
+#else
+    internal static partial class AdalError
 #endif
     {
         /// <summary>
@@ -58,6 +58,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// 'authority' is not in the list of valid addresses.
         /// </summary>
         public const string AuthorityNotInValidList = "authority_not_in_valid_list";
+
+        /// <summary>
+        /// Authority validation failed.
+        /// </summary>
+        public const string AuthorityValidationFailed = "authority_validation_failed";
 
         /// <summary>
         /// Loading required assembly failed.
@@ -222,6 +227,26 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// Failed to get user name.
         /// </summary>
         public const string GetUserNameFailed = "get_user_name_failed";
+
+        /// <summary>
+        /// Federation Metadata Url is missing for federated user.
+        /// </summary>
+        public const string MissingFederationMetadataUrl = "missing_federation_metadata_url";
+
+        /// <summary>
+        /// Failed to refresh token.
+        /// </summary>
+        public const string FailedToRefreshToken = "failed_to_refresh_token";
+
+        /// <summary>
+        /// Integrated authentication failed. You may try an alternative authentication method.
+        /// </summary>
+        public const string IntegratedAuthFailed = "integrated_authentication_failed";
+
+        /// <summary>
+        /// Duplicate query parameter in extraQueryParameters
+        /// </summary>
+        public const string DuplicateQueryParameter = "duplicate_query_parameter";
     }
 
     /// <summary>
@@ -231,9 +256,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
     {
         public const string AccessingMetadataDocumentFailed = "Accessing WS metadata exchange failed";
         public const string AssemblyLoadFailedTemplate = "Loading an assembly required for interactive user authentication failed. Make sure assembly '{0}' exists";
-        public const string AuthenticationUiFailed = "The browser based authentication dialog failed to complete for an unkown reason";
+        public const string AuthenticationUiFailed = "The browser based authentication dialog failed to complete";
         public const string AuthorityInvalidUriFormat = "'authority' should be in Uri format";
         public const string AuthorityNotInValidList = "'authority' is not in the list of valid addresses";
+        public const string AuthorityValidationFailed = "Authority validation failed";
         public const string AuthorityUriInsecure = "'authority' should use the 'https' scheme";
         public const string AuthorityUriInvalidPath = "'authority' Uri should have at least one segment in the path (i.e. https://<host>/<path>/...)";
         public const string AuthorizationServerInvalidResponse = "The authorization server returned an invalid response";
@@ -241,6 +267,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public const string EmailAddressSuffixMismatch = "No identity provider email address suffix matches the provided address";
         public const string EncodedTokenTooLong = "Encoded token size is beyond the upper limit";
         public const string FailedToAcquireTokenSilently = "Failed to acquire token silently. Call method AcquireToken";
+        public const string FailedToRefreshToken = "Failed to refresh token";
         public const string FederatedServiceReturnedErrorTemplate = "Federated serviced at {0} returned error: {1}";
         public const string IdentityProtocolLoginUrlNull = "The LoginUrl property in identityProvider cannot be null";
         public const string IdentityProtocolMismatch = "No identity provider matches the requested protocol";
@@ -281,11 +308,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public const string UserRealmDiscoveryFailed = "User realm discovery failed";
         public const string WsTrustEndpointNotFoundInMetadataDocument = "WS-Trust endpoint not found in metadata document";
         public const string GetUserNameFailed = "Failed to get user name";
-    }
-
-    internal static class AuthenticationConstant
-    {
-        public const uint JwtToAadLifetimeInSeconds = 60 * 10; // Ten minutes
+        public const string MissingFederationMetadataUrl = "Federation Metadata Url is missing for federated user. This user type is unsupported.";
+        public const string SpecifyAnyUser = "If you do not need access token for any specific user, pass userId=UserIdentifier.AnyUser instead of userId=null.";
+        public const string IntegratedAuthFailed = "Integrated authentication failed. You may try an alternative authentication method";
+        public const string DuplicateQueryParameterTemplate = "Duplicate query parameter '{0}' in extraQueryParameters";
     }
 
     internal class XmlNamespace

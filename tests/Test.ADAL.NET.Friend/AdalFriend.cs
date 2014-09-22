@@ -17,6 +17,7 @@
 //----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
@@ -26,19 +27,31 @@ namespace Test.ADAL.NET.Friend
     {
         public static ClientAssertion CreateJwt(X509Certificate2 cert, string issuer, string aud)
         {
-            // Thirty minutes
-            const uint JwtToAcsLifetimeInSeconds = 60 * 30; 
+            ClientAssertionCertificate certificate = new ClientAssertionCertificate(issuer, cert);
 
-            X509CertificateCredential x509ClientCredential = new X509CertificateCredential(issuer, cert);
-            JsonWebToken jwtToken = new JsonWebToken(aud, issuer, JwtToAcsLifetimeInSeconds, issuer);
-            return jwtToken.Sign(x509ClientCredential);
+            JsonWebToken jwtToken = new JsonWebToken(certificate, aud);
+            return jwtToken.Sign(certificate);
         }
 
         public static string AcquireAccessCode(AuthenticationContext context, string resource, string clientId, Uri redirectUri, UserIdentifier userId)
         {
-            context.CreateAuthenticatorAsync(null).Wait();
-            AuthorizationResult authorizationResult = context.SendAuthorizeRequest(resource, clientId, redirectUri, userId, PromptBehavior.Auto, null, null);
-            return authorizationResult.Code;
+            var handler = new AcquireTokenInteractiveHandler(context.Authenticator, context.TokenCache, resource, clientId, redirectUri, PromptBehavior.Auto, userId, null,
+                context.CreateWebAuthenticationDialog(PromptBehavior.Auto), true);
+            handler.CallState = null;
+            context.Authenticator.AuthorizationUri = context.Authority + "oauth2/authorize";
+            handler.AcquireAuthorization();
+            return handler.authorizationResult.Code;
+        }
+
+        public static void UpdateTokenExpiryOnTokenCache(TokenCache cache, DateTimeOffset newExpiry)
+        {
+            var cacheDictionary = cache.tokenCacheDictionary;
+
+            var key = cacheDictionary.Keys.First();
+            cache.tokenCacheDictionary[key].ExpiresOn = newExpiry; 
+            var value = cacheDictionary.Values.First();
+            cache.Clear();
+            cacheDictionary.Add(key, value);        
         }
     }
 }

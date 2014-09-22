@@ -17,7 +17,7 @@
 //----------------------------------------------------------------------
 
 using System;
-#if TEST_ADAL_WINRT
+#if TEST_ADAL_WINRT_UNIT
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 #else
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -70,6 +70,16 @@ namespace Test.ADAL.Common
         internal static void IsNotNull(object variable, string message = null)
         {
             Assert.IsNotNull(variable, message);
+        }
+
+        internal static void IsNullOrEmptyString(string variable, string message = null)
+        {
+            Assert.IsTrue(string.IsNullOrEmpty(variable), message);
+        }
+
+        internal static void IsNotNullOrEmptyString(string variable, string message = null)
+        {
+            Assert.IsFalse(string.IsNullOrEmpty(variable), message);
         }
 
         internal static void Fail(string message, params object[] args)

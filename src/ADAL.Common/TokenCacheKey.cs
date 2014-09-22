@@ -17,103 +17,59 @@
 //----------------------------------------------------------------------
 
 using System;
-#if ADAL_WINRT
-using Windows.Foundation.Metadata;
-#endif
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
     /// <summary>
-    /// <see cref="TokenCacheKey"/> can be used with Linq to access items from the <see cref="AuthenticationContext.TokenCacheStore"/>.
+    /// Determines what type of subject the token was issued for.
     /// </summary>
-    public sealed class TokenCacheKey
+    internal enum TokenSubjectType
     {
         /// <summary>
-        /// Default constructor.
+        /// User
         /// </summary>
-        public TokenCacheKey()
+        User,
+        /// <summary>
+        /// Client
+        /// </summary>
+        Client,
+        /// <summary>
+        /// UserPlusClient: This is for confidential clients used in middle tier.
+        /// </summary>
+        UserPlusClient
+    };
+
+    /// <summary>
+    /// <see cref="TokenCacheKey"/> can be used with Linq to access items from the TokenCache dictionary.
+    /// </summary>
+    internal sealed class TokenCacheKey
+    {
+        internal TokenCacheKey(string authority, string resource, string clientId, TokenSubjectType tokenSubjectType, UserInfo userInfo)
+            : this(authority, resource, clientId, tokenSubjectType, (userInfo != null) ? userInfo.UniqueId : null, (userInfo != null) ? userInfo.DisplayableId : null)
         {
         }
 
-        /// <summary>
-        /// Instantiates a key from a <see cref="AuthenticationResult"/>, it can be null.
-        /// </summary>
-        /// <param name="result">Result used for creating cache key</param>
-        internal TokenCacheKey(AuthenticationResult result)
+        internal TokenCacheKey(string authority, string resource, string clientId, TokenSubjectType tokenSubjectType, string uniqueId, string displayableId)
         {
-            if (result == null)
-            {
-                return;
-            }
-
-            this.ExpiresOn = result.ExpiresOn;
-            this.TenantId = result.TenantId;
-            this.IsMultipleResourceRefreshToken = result.IsMultipleResourceRefreshToken;
-
-            if (result.UserInfo != null)
-            {
-                this.FamilyName = result.UserInfo.FamilyName;
-                this.GivenName = result.UserInfo.GivenName;
-                this.IdentityProviderName = result.UserInfo.IdentityProvider;
-                this.UniqueId = result.UserInfo.UniqueId;
-                this.DisplayableId = result.UserInfo.DisplayableId;
-            }
+            this.Authority = authority;
+            this.Resource = resource;
+            this.ClientId = clientId;
+            this.TokenSubjectType = tokenSubjectType;
+            this.UniqueId = uniqueId;
+            this.DisplayableId = displayableId;
         }
 
-        /// <summary>
-        /// Gets or sets the Authority.
-        /// </summary>
-        public string Authority { get; set; }
+        public string Authority { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the ClientId.
-        /// </summary>
-        public string ClientId { get; set; }
+        public string Resource { get; internal set; }
 
-        /// <summary>
-        /// Gets or sets the Expiration.
-        /// </summary>
-        public DateTimeOffset ExpiresOn { get; set; }
+        public string ClientId { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the FamilyName.
-        /// </summary>
-        public string FamilyName { get; set; }
+        public string UniqueId { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the GivenName.
-        /// </summary>
-        public string GivenName { get; set; }
+        public string DisplayableId { get; private set; }
 
-        /// <summary>
-        /// Gets or sets the IdentityProviderName.
-        /// </summary>
-        public string IdentityProviderName { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the RefreshToken applies to multiple resources.
-        /// </summary>
-        public bool IsMultipleResourceRefreshToken { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Resource.
-        /// </summary>
-        public string Resource { get; set; }
-
-        /// <summary>
-        /// Gets or sets the TenantId.
-        /// </summary>
-        public string TenantId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the user's unique Id.
-        /// </summary>
-        public string UniqueId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the user's displayable Id.
-        /// </summary>
-        public string DisplayableId { get; set; }
+        public TokenSubjectType TokenSubjectType { get; private set; }
 
         /// <summary>
         /// Determines whether the specified object is equal to the current object.
@@ -135,24 +91,16 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// true if the specified TokenCacheKey is equal to the current object; otherwise, false.
         /// </returns>
         /// <param name="other">The TokenCacheKey to compare with the current object. </param><filterpriority>2</filterpriority>
-#if ADAL_WINRT
-        [DefaultOverload]
-#endif
         public bool Equals(TokenCacheKey other)
         {
             return ReferenceEquals(this, other) ||
                (other != null
                && (other.Authority == this.Authority)
-               && (other.ClientId == this.ClientId)
-               && (other.ExpiresOn == this.ExpiresOn)
-               && (other.FamilyName == this.FamilyName)
-               && (other.GivenName == this.GivenName)
-               && (other.IdentityProviderName == this.IdentityProviderName)
-               && (other.IsMultipleResourceRefreshToken == this.IsMultipleResourceRefreshToken)
-               && (other.Resource == this.Resource)
-               && (other.TenantId == this.TenantId)
+               && this.ResourceEquals(other.Resource)
+               && this.ClientIdEquals(other.ClientId)
                && (other.UniqueId == this.UniqueId)
-               && (other.DisplayableId == this.DisplayableId));
+               && this.DisplayableIdEquals(other.DisplayableId)
+               && (other.TokenSubjectType == this.TokenSubjectType));
         }
 
         /// <summary>
@@ -165,16 +113,26 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         {
             const string Delimiter = ":::";
             return (this.Authority + Delimiter 
-                + this.ClientId + Delimiter
-                + this.ExpiresOn + Delimiter
-                + this.FamilyName + Delimiter
-                + this.GivenName + Delimiter
-                + this.IdentityProviderName + Delimiter
-                + this.IsMultipleResourceRefreshToken + Delimiter
-                + this.Resource + Delimiter
-                + this.TenantId + Delimiter
+                + this.Resource.ToLower() + Delimiter
+                + this.ClientId.ToLower() + Delimiter
                 + this.UniqueId + Delimiter
-                + this.DisplayableId).GetHashCode();
+                + ((this.DisplayableId != null) ? this.DisplayableId.ToLower() : null) + Delimiter
+                + (int)this.TokenSubjectType).GetHashCode();
+        }
+
+        internal bool ResourceEquals(string otherResource)
+        {
+            return (string.Compare(otherResource, this.Resource, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        internal bool ClientIdEquals(string otherClientId)
+        {
+            return (string.Compare(otherClientId, this.ClientId, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+
+        internal bool DisplayableIdEquals(string otherDisplayableId)
+        {
+            return (string.Compare(otherDisplayableId, this.DisplayableId, StringComparison.OrdinalIgnoreCase) == 0);
         }
     }
 }

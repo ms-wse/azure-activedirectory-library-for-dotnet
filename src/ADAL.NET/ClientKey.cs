@@ -20,7 +20,7 @@ using System;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
-    internal class ClientKey
+    internal partial class ClientKey
     {
         public ClientKey(ClientCredential clientCredential)
         {
@@ -30,16 +30,22 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
 
             this.Credential = clientCredential;
+            this.ClientId = clientCredential.ClientId;
+            this.HasCredential = true;
         }
 
-        public ClientKey(X509CertificateCredential clientCertificate)
+        public ClientKey(ClientAssertionCertificate clientCertificate, Authenticator authenticator)
         {
+            this.Authenticator = authenticator;
+
             if (clientCertificate == null)
             {
                 throw new ArgumentNullException("clientCertificate");
             }
 
             this.Certificate = clientCertificate;
+            this.ClientId = clientCertificate.ClientId;
+            this.HasCredential = true;
         }
 
         public ClientKey(ClientAssertion clientAssertion)
@@ -50,24 +56,16 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
 
             this.Assertion = clientAssertion;
-        }
-
-        public string GetClientId()
-        {
-            if (this.Credential != null)
-            {
-                return this.Credential.ClientId;
-            }
-
-            return (this.Certificate) != null ? this.Certificate.ClientId : null;
+            this.ClientId = clientAssertion.ClientId;
+            this.HasCredential = true;
         }
 
         public ClientCredential Credential { get; private set; }
 
-        public X509CertificateCredential Certificate { get; private set; }
-        
-        public string Audience { get; set; }
+        public ClientAssertionCertificate Certificate { get; private set; }
 
         public ClientAssertion Assertion { get; private set; }
+
+        public Authenticator Authenticator { get; private set; }
     }
 }
