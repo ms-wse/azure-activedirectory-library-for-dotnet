@@ -23,6 +23,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
     internal partial class Logger
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal static string PrepareLogMessage(CallState callState, string format, params object[] args)
         {
             return string.Format(CultureInfo.CurrentCulture, format, args) + (callState != null ? (". Correlation ID: " + callState.CorrelationId) : string.Empty);
@@ -40,7 +41,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             AdalServiceException adalServiceEx = ex as AdalServiceException;
             if (adalServiceEx != null)
             {
-                Information(callState, "AdalServiceException was thrown with ErrorCode '{0}' and StatusCode '{1}' and innerException '{2}'", 
+                Information(callState, "AdalServiceException was thrown with ErrorCode '{0}' and StatusCode '{1}' and innerException '{2}'",
                     adalServiceEx.ErrorCode, adalServiceEx.StatusCode, (adalServiceEx.InnerException != null) ? adalServiceEx.Message : "No inner exception");
                 return;
             }

@@ -59,7 +59,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             int sessionCount = NativeMethods.SetQueryNetSessionCount(NativeMethods.SessionOp.SESSION_QUERY);
             if (sessionCount == 0)
             {
-                NativeMethods.SetQueryNetSessionCount(NativeMethods.SessionOp.SESSION_INCREMENT);
+                int result = NativeMethods.SetQueryNetSessionCount(NativeMethods.SessionOp.SESSION_INCREMENT);
+                if (result != 0)
+                {
+                    //do nothing
+                }
             }
         }
 
@@ -82,7 +86,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             }
             else
             {
-                throw new AdalException(AdalError.InvalidOwnerWindowType, 
+                throw new AdalException(AdalError.InvalidOwnerWindowType,
                     "Invalid owner window type. Expected types are IWin32Window or IntPtr (for window handle).");
             }
 
@@ -90,7 +94,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             this.webBrowser.PreviewKeyDown += webBrowser_PreviewKeyDown;
             this.InitializeComponent();
         }
-        
+
         private void webBrowser_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
             if (e.KeyCode == Keys.Back)
@@ -277,7 +281,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             this.webBrowserPanel.ResumeLayout(false);
             this.ResumeLayout(false);
         }
-        
+
         private sealed class WindowsFormsWin32Window : IWin32Window
         {
             public IntPtr Handle { get; set; }
@@ -324,7 +328,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
                 {
                     deviceDpiX = NativeWrapper.NativeMethods.GetDeviceCaps(dC, LOGPIXELSX);
                     deviceDpiY = NativeWrapper.NativeMethods.GetDeviceCaps(dC, LOGPIXELSY);
-                    NativeWrapper.NativeMethods.ReleaseDC(IntPtr.Zero, dC);
+                    int result = NativeWrapper.NativeMethods.ReleaseDC(IntPtr.Zero, dC);
+                    if (result != 0)
+                    {
+                        //do nothing
+                    }
                 }
                 else
                 {
@@ -344,7 +352,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
 
         internal static class NativeMethods
         {
-            internal enum SessionOp 
+            internal enum SessionOp
             {
                 SESSION_QUERY = 0,
                 SESSION_INCREMENT,
@@ -352,7 +360,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal
             };
 
             [DllImport("IEFRAME.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
-            internal static extern int SetQueryNetSessionCount(SessionOp sessionOp);        
+            internal static extern int SetQueryNetSessionCount(SessionOp sessionOp);
         }
     }
 }

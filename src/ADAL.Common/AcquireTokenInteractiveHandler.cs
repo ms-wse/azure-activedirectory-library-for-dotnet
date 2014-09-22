@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 
 using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal;
+using System.Globalization;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
@@ -91,7 +92,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         {
             requestParameters[OAuthParameter.GrantType] = OAuthGrantType.AuthorizationCode;
             requestParameters[OAuthParameter.Code] = this.authorizationResult.Code;
-            requestParameters[OAuthParameter.RedirectUri] = this.redirectUriRequestParameter;            
+            requestParameters[OAuthParameter.RedirectUri] = this.redirectUriRequestParameter;
         }
 
         protected override void PostTokenRequest(AuthenticationResult result)
@@ -185,7 +186,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 {
                     if (authorizationRequestParameters.ContainsKey(kvp.Key))
                     {
-                        var ex = new AdalException(AdalError.DuplicateQueryParameter, string.Format(AdalErrorMessage.DuplicateQueryParameterTemplate, kvp.Key));
+                        var ex = new AdalException(AdalError.DuplicateQueryParameter, string.Format(CultureInfo.InvariantCulture, AdalErrorMessage.DuplicateQueryParameterTemplate, kvp.Key));
                         Logger.LogException(this.CallState, ex);
                         throw ex;
                     }

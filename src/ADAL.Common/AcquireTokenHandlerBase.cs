@@ -70,7 +70,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         protected UserIdentifierType UserIdentifierType { get; set; }
 
         protected bool LoadFromCache { get; set; }
-        
+
         protected bool StoreToCache { get; set; }
 
         public async Task<AuthenticationResult> RunAsync()
@@ -83,7 +83,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
                 AuthenticationResult result = null;
                 if (this.LoadFromCache)
-                { 
+                {
                     this.NotifyBeforeAccessCache();
                     notifiedBeforeAccessCache = true;
 
@@ -97,7 +97,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                         }
                     }
                 }
-                
+
                 if (result == null)
                 {
                     await this.PreTokenRequest();
@@ -260,11 +260,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 if (result.RefreshToken != null)
                 {
                     string refreshTokenHash = PlatformSpecificHelper.CreateSha256Hash(result.RefreshToken);
-                    logMessage = string.Format("Access Token with hash '{0}' and Refresh Token with hash '{1}' returned", accessTokenHash, refreshTokenHash);
+                    logMessage = string.Format(CultureInfo.InvariantCulture, "Access Token with hash '{0}' and Refresh Token with hash '{1}' returned", accessTokenHash, refreshTokenHash);
                 }
                 else
                 {
-                    logMessage = string.Format("Access Token with hash '{0}' returned", accessTokenHash);
+                    logMessage = string.Format(CultureInfo.InvariantCulture, "Access Token with hash '{0}' returned", accessTokenHash);
                 }
 
                 Logger.Verbose(this.CallState, logMessage);

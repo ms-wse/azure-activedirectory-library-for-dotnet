@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Json;
@@ -32,7 +33,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public const string UserRealmDiscovery = "user_realm";
         public const string InstanceDiscovery = "instance";
     }
-    
+
     internal class ClientMetrics
     {
         private const string ClientMetricsHeaderLastError = "x-client-last-error";
@@ -54,7 +55,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             {
                 AddClientMetricsHeadersToRequest(request);
                 metricsTimer = Stopwatch.StartNew();
-            }            
+            }
         }
 
         public void EndClientMetricsRecord(string endpoint, CallState callState)
@@ -65,7 +66,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 lastResponseTime = metricsTimer.ElapsedMilliseconds;
                 lastCorrelationId = callState.CorrelationId;
                 lastEndpoint = endpoint;
-                if (pendingClientMetrics == null) 
+                if (pendingClientMetrics == null)
                 {
                     pendingClientMetrics = this;
                 }
@@ -88,7 +89,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 }
 
                 headers[ClientMetricsHeaderLastRequest] = pendingClientMetrics.lastCorrelationId.ToString();
-                headers[ClientMetricsHeaderLastResponseTime] = pendingClientMetrics.lastResponseTime.ToString();
+                headers[ClientMetricsHeaderLastResponseTime] = pendingClientMetrics.lastResponseTime.ToString(CultureInfo.InvariantCulture);
                 headers[ClientMetricsHeaderLastEndpoint] = pendingClientMetrics.lastEndpoint;
 
                 HttpHelper.AddHeadersToRequest(request, headers);

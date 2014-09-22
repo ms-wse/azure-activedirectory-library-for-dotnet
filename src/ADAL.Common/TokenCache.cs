@@ -23,6 +23,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
@@ -44,7 +45,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         internal delegate Task<AuthenticationResult> RefreshAccessTokenAsync(AuthenticationResult result, string resource, ClientKey clientKey, CallState callState);
 
         private const int SchemaVersion = 2;
-        
+
         private const string Delimiter = ":::";
         private const string LocalSettingsContainerName = "ActiveDirectoryAuthenticationLibrary";
 
@@ -135,7 +136,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
                 writer.Write(this.tokenCacheDictionary.Count);
                 foreach (KeyValuePair<TokenCacheKey, AuthenticationResult> kvp in this.tokenCacheDictionary)
                 {
-                    writer.Write(string.Format("{1}{0}{2}{0}{3}{0}{4}", Delimiter, kvp.Key.Authority, kvp.Key.Resource, kvp.Key.ClientId, (int)kvp.Key.TokenSubjectType));
+                    writer.Write(string.Format(CultureInfo.InvariantCulture, "{1}{0}{2}{0}{3}{0}{4}", Delimiter, kvp.Key.Authority, kvp.Key.Resource, kvp.Key.ClientId, (int)kvp.Key.TokenSubjectType));
                     writer.Write(kvp.Value.Serialize());
                 }
 
@@ -181,7 +182,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
                     string[] kvpElements = keyString.Split(new[] { Delimiter }, StringSplitOptions.None);
                     AuthenticationResult result = AuthenticationResult.Deserialize(reader.ReadString());
-                    TokenCacheKey key = new TokenCacheKey(kvpElements[0], kvpElements[1], kvpElements[2], (TokenSubjectType)int.Parse(kvpElements[3]), result.UserInfo);
+                    TokenCacheKey key = new TokenCacheKey(kvpElements[0], kvpElements[1], kvpElements[2], (TokenSubjectType)int.Parse(kvpElements[3], CultureInfo.InvariantCulture), result.UserInfo);
 
                     this.tokenCacheDictionary.Add(key, result);
                 }
@@ -228,13 +229,13 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
 
             TokenCacheNotificationArgs args = new TokenCacheNotificationArgs
-                {
-                    TokenCache = this,
-                    Resource = item.Resource,
-                    ClientId = item.ClientId,
-                    UniqueId = item.UniqueId,
-                    DisplayableId = item.DisplayableId
-                };
+            {
+                TokenCache = this,
+                Resource = item.Resource,
+                ClientId = item.ClientId,
+                UniqueId = item.UniqueId,
+                DisplayableId = item.DisplayableId
+            };
 
             this.OnBeforeAccess(args);
             this.OnBeforeWrite(args);

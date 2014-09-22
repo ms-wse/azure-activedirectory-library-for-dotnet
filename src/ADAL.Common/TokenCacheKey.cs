@@ -17,6 +17,7 @@
 //----------------------------------------------------------------------
 
 using System;
+using System.Globalization;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
@@ -112,11 +113,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         public override int GetHashCode()
         {
             const string Delimiter = ":::";
-            return (this.Authority + Delimiter 
-                + this.Resource.ToLower() + Delimiter
-                + this.ClientId.ToLower() + Delimiter
+            return (this.Authority + Delimiter
+                + this.Resource.ToLower(CultureInfo.InvariantCulture) + Delimiter
+                + this.ClientId.ToLower(CultureInfo.InvariantCulture) + Delimiter
                 + this.UniqueId + Delimiter
-                + ((this.DisplayableId != null) ? this.DisplayableId.ToLower() : null) + Delimiter
+                + ((this.DisplayableId != null) ? this.DisplayableId.ToLower(CultureInfo.InvariantCulture) : null) + Delimiter
                 + (int)this.TokenSubjectType).GetHashCode();
         }
 
