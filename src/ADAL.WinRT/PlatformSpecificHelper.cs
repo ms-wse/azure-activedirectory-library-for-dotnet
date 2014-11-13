@@ -17,62 +17,24 @@
 //----------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Windows.Networking;
-using Windows.Security.Cryptography;
-using Windows.Security.Cryptography.Core;
-using Windows.Storage;
-using Windows.Storage.Streams;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 {
-    internal static class PlatformSpecificHelper
+    internal static partial class PlatformSpecificHelper
     {
         public static string GetProductName()
         {
             return "WinRT";
         }
 
-        public static string GetEnvironmentVariable(string variable)
-        {
-            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            return localSettings.Values.ContainsKey(variable) ? localSettings.Values[variable].ToString() : null;
-        }
-
-        public static AuthenticationResult ProcessServiceError(string error, string errorDescription)
-        {
-            return new AuthenticationResult(AuthenticationStatus.ServiceError, error, errorDescription);
-        }
-
-        public static string PlatformSpecificToLower(this string input)
-        {
-            // WinRT does not have the overload with CultureInfo parameter
-            return input.ToLower();
-        }
-
-        public async static Task<bool> IsUserLocal()
-        {
-            if (!Windows.System.UserProfile.UserInformation.NameAccessAllowed)
-            {
-                throw new AdalException(AdalError.CannotAccessUserInformation);
-            }
-
-            try
-            {
-                return string.IsNullOrEmpty(await Windows.System.UserProfile.UserInformation.GetDomainNameAsync());
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                throw new AdalException(AdalError.UnauthorizedUserInformationAccess, ex);
-            }
-        }
-
         public async static Task<string> GetUserPrincipalNameAsync()
         {
             if (!Windows.System.UserProfile.UserInformation.NameAccessAllowed)
             {
-                throw new AdalException(AdalError.CannotAccessUserInformation);
+                var ex = new AdalException(AdalError.CannotAccessUserInformation);
+                Logger.LogException(null, ex);
+                throw ex;
             }
 
             try
@@ -81,34 +43,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
             catch (UnauthorizedAccessException ex)
             {
-                throw new AdalException(AdalError.UnauthorizedUserInformationAccess, ex);
+                var adalEx = new AdalException(AdalError.UnauthorizedUserInformationAccess, ex);
+                Logger.LogException(null, adalEx);
+                throw adalEx;
             }
-        }
-
-        internal static string CreateSha256Hash(string input)
-        {
-            IBuffer inputBuffer = CryptographicBuffer.ConvertStringToBinary(input, BinaryStringEncoding.Utf8);
-
-            var hasher = HashAlgorithmProvider.OpenAlgorithm("SHA256");
-            IBuffer hashed = hasher.HashData(inputBuffer);
-
-            return CryptographicBuffer.EncodeToBase64String(hashed);
-        }
-
-        public static bool IsDomainJoined()
-        {
-            IReadOnlyList<HostName> hostNamesList = Windows.Networking.Connectivity.NetworkInformation
-                .GetHostNames();
-
-            foreach (var entry in hostNamesList)
-            {
-                if (entry.Type == Windows.Networking.HostNameType.DomainName)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

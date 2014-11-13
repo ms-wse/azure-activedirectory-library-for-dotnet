@@ -22,7 +22,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
     /// Indicates whether AcquireToken should automatically prompt only if necessary or whether
     /// it should prompt regardless of whether there is a cached token.
     /// </summary>
+#if ADAL_WINPHONE
+    internal enum PromptBehavior
+#else
     public enum PromptBehavior
+#endif
     {
         /// <summary>
         /// Acquire token will prompt the user for credentials only when necessary.  If a token
@@ -36,7 +40,6 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// </summary>
         Always,
 
-// PromptBehavior.Never is not implemented in WinRT library yet.
         /// <summary>
         /// The user will not be prompted for credentials.  If prompting is necessary then the AcquireToken request
         /// will fail.

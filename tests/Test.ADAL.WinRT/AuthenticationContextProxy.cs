@@ -64,11 +64,11 @@ namespace Test.ADAL.Common
                 new CommandArguments { Authority = authority, ValidateAuthority = validateAuthority }));
         }
 
-        public AuthenticationContextProxy(string authority, bool validateAuthority, TokenCacheStoreType tokenCacheStoreType)
+        public AuthenticationContextProxy(string authority, bool validateAuthority, TokenCacheType tokenCacheType)
         {
             CommandProxy.AddCommand(new AuthenticationContextCommand(
                 CommandType.CreateContextAVT,
-                new CommandArguments { Authority = authority, ValidateAuthority = validateAuthority, TokenCacheStoreType = tokenCacheStoreType }));
+                new CommandArguments { Authority = authority, ValidateAuthority = validateAuthority, TokenCacheType = tokenCacheType }));
         }
 
         public static void InitializeTest()
@@ -119,23 +119,11 @@ namespace Test.ADAL.Common
                 new CommandArguments { Resource = resource, ClientId = clientId, UserName = credential.UserId, Password = credential.Password });
         }
 
-        public AuthenticationResultProxy AcquireToken(string resource, string clientId)
-        {
-            return RunAsyncTask(AddCommandAndRunAsync(CommandType.AquireTokenAsyncRC, new CommandArguments { Resource = resource, ClientId = clientId }));
-        }
-
         public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri)
         {
             return RunAsyncTask(AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCRe,
                 new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri }));
-        }
-
-        public AuthenticationResultProxy AcquireToken(string resource, string clientId, PromptBehaviorProxy promptBehavior)
-        {
-            return RunAsyncTask(AddCommandAndRunAsync(
-                CommandType.AquireTokenAsyncRCP,
-                new CommandArguments { Resource = resource, ClientId = clientId, PromptBehavior = promptBehavior }));
         }
 
         public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, PromptBehaviorProxy promptBehavior)
@@ -150,7 +138,8 @@ namespace Test.ADAL.Common
             return RunAsyncTask(AddCommandAndRunAsync(
                 CommandType.AquireTokenAsyncRCRePU,
                 new CommandArguments { Resource = resource, ClientId = clientId, RedirectUri = redirectUri, PromptBehavior = promptBehavior,
-                                       UserName = (userId != null) ? userId.Id : null }));
+                                       UserName = !ReferenceEquals(userId, UserIdentifier.AnyUser) ? userId.Id : null
+                                     }));
         }
 
         public AuthenticationResultProxy AcquireToken(string resource, string clientId, Uri redirectUri, PromptBehaviorProxy promptBehavior, UserIdentifier userId, string extraQueryParameters)
@@ -163,7 +152,7 @@ namespace Test.ADAL.Common
                     ClientId = clientId,
                     RedirectUri = redirectUri,
                     PromptBehavior = promptBehavior,
-                    UserName = (userId != null) ? userId.Id : null,
+                    UserName = !ReferenceEquals(userId, UserIdentifier.AnyUser) ? userId.Id : null,
                     Extra = extraQueryParameters
                 }));
         }

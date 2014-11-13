@@ -32,20 +32,22 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
         private readonly JWTPayload payload;
 
-        public JsonWebToken(string audience, string issuer, uint allowedLifetimeInSeconds, string subject = null)
+        public JsonWebToken(ClientAssertionCertificate certificate, string audience)
         {
             DateTime validFrom = NetworkPlugin.RequestCreationHelper.GetJsonWebTokenValidFrom();
 
-            DateTime validTo = validFrom + TimeSpan.FromSeconds(allowedLifetimeInSeconds);
+            DateTime validTo = validFrom + TimeSpan.FromSeconds(JsonWebTokenConstants.JwtToAadLifetimeInSeconds);
 
             this.payload = new JWTPayload
                 {
                     Audience = audience,
-                    Issuer = issuer,
+                    Issuer = certificate.ClientId,
                     ValidFrom = DateTimeHelper.ConvertToTimeT(validFrom),
                     ValidTo = DateTimeHelper.ConvertToTimeT(validTo),
-                    Subject = subject
+                    Subject = certificate.ClientId
                 };
+
+            this.payload.JwtIdentifier = NetworkPlugin.RequestCreationHelper.GetJsonWebTokenId();
         }
 
         public ClientAssertion Sign(ClientAssertionCertificate credential)
@@ -56,10 +58,12 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             // Length check before sign
             if (MaxTokenLength < token.Length)
             {
-                throw new AdalException(AdalError.EncodedTokenTooLong);
+                var ex = new AdalException(AdalError.EncodedTokenTooLong);
+                Logger.LogException(null, ex);
+                throw ex;
             }
 
-            return new ClientAssertion(string.Concat(token, ".", UrlEncodeSegment(credential.Sign(token))), OAuthAssertionType.JwtBearer);
+            return new ClientAssertion(this.payload.Issuer, string.Concat(token, ".", UrlEncodeSegment(credential.Sign(token))));
         }
 
         private static string EncodeSegment(string segment)
@@ -167,6 +171,9 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             [DataMember(Name = JsonWebTokenConstants.ReservedClaims.Subject, IsRequired = false,
                 EmitDefaultValue = false)]
             public string Subject { get; set; }
+
+            [DataMember(Name = JsonWebTokenConstants.ReservedClaims.JwtIdentifier, IsRequired=false, EmitDefaultValue=false)]
+            public string JwtIdentifier { get; set; }
         }
 
         [DataContract]

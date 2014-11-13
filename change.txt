@@ -1,0 +1,111 @@
+	modified:   .gitignore
+	new file:   src/ADAL.Common/AcquireTokenByRefreshTokenHandler.cs
+	new file:   src/ADAL.Common/AcquireTokenForMSAHandler.cs
+	new file:   src/ADAL.Common/AcquireTokenHandlerBase.cs
+	new file:   src/ADAL.Common/AcquireTokenInteractiveHandler.cs
+	new file:   src/ADAL.Common/AcquireTokenNonInteractiveHandler.cs
+	new file:   src/ADAL.Common/AcquireTokenSilentHandler.cs
+	deleted:    src/ADAL.Common/ActiveDirectoryAuthenticationAuthority.cs
+	renamed:    src/ADAL.Common/ExceptionHelper.cs -> src/ADAL.Common/AdalException.cs
+	modified:   src/ADAL.Common/AdalIdHelper.cs
+	modified:   src/ADAL.Common/AdalServiceException.cs
+	new file:   src/ADAL.Common/AdalSilentTokenAcquisitionException.cs
+	modified:   src/ADAL.Common/AdalUserMismatchException.cs
+	modified:   src/ADAL.Common/AuthenticationContext.cs
+	deleted:    src/ADAL.Common/AuthenticationMetadata.cs
+	modified:   src/ADAL.Common/AuthenticationParameters.cs
+	modified:   src/ADAL.Common/AuthenticationResult.cs
+	new file:   src/ADAL.Common/Authenticator.cs
+	new file:   src/ADAL.Common/AuthenticatorTemplate.cs
+	new file:   src/ADAL.Common/AuthenticatorTemplateList.cs
+	modified:   src/ADAL.Common/CallState.cs
+	renamed:    src/ADAL.Common/LogHelper.cs -> src/ADAL.Common/ClientKey.cs
+	new file:   src/ADAL.Common/ClientMetrics.cs
+	modified:   src/ADAL.Common/CommonAssemblyInfo.cs
+	modified:   src/ADAL.Common/Constants.cs
+	modified:   src/ADAL.Common/HttpHelper.cs
+	modified:   src/ADAL.Common/HttpWebRequestWrapper.cs
+	modified:   src/ADAL.Common/HttpWebResponseWrapper.cs
+	modified:   src/ADAL.Common/IRequestCreationHelper.cs
+	new file:   src/ADAL.Common/Logger.cs
+	modified:   src/ADAL.Common/MexParser.cs
+	deleted:    src/ADAL.Common/OAuth2MessageHelper.cs
+	deleted:    src/ADAL.Common/OAuth2Request.cs
+	modified:   src/ADAL.Common/OAuth2Response.cs
+	modified:   src/ADAL.Common/OAuthConstants.cs
+	modified:   src/ADAL.Common/PromptBehavior.cs
+	deleted:    src/ADAL.Common/RegexUtilities.cs
+	modified:   src/ADAL.Common/RequestCreationHelper.cs
+	modified:   src/ADAL.Common/RequestParameters.cs
+	new file:   src/ADAL.Common/TokenCache.cs
+	deleted:    src/ADAL.Common/TokenCacheHelper.cs
+	new file:   src/ADAL.Common/TokenCacheItem.cs
+	modified:   src/ADAL.Common/TokenCacheKey.cs
+	deleted:    src/ADAL.Common/TokenCacheManager.cs
+	renamed:    src/ADAL.NET/RegexUtilities.cs -> src/ADAL.Common/TokenCacheNotificationArgs.cs
+	modified:   src/ADAL.Common/UserCredential.cs
+	modified:   src/ADAL.Common/UserIdentifier.cs
+	modified:   src/ADAL.Common/UserInfo.cs
+	modified:   src/ADAL.Common/UserRealmDiscoveryResponse.cs
+	modified:   src/ADAL.Common/WsTrustRequest.cs
+	modified:   src/ADAL.Common/WsTrustResponse.cs
+	new file:   src/ADAL.CommonDesktop/AdalIdHelper.cs
+	renamed:    src/ADAL.WinRT/AdalEventSource.cs -> src/ADAL.CommonWinRT/AdalEventSource.cs
+	renamed:    src/ADAL.WinRT/AdalTrace.cs -> src/ADAL.CommonWinRT/AdalTrace.cs
+	new file:   src/ADAL.CommonWinRT/AuthenticationContext.cs
+	renamed:    src/ADAL.WinRT/AuthenticationParameters.cs -> src/ADAL.CommonWinRT/AuthenticationParameters.cs
+	renamed:    src/ADAL.WinRT/AuthenticationResult.cs -> src/ADAL.CommonWinRT/AuthenticationResult.cs
+	renamed:    src/ADAL.WinRT/Constants.cs -> src/ADAL.CommonWinRT/Constants.cs
+	renamed:    src/ADAL.WinRT/CryptographyHelper.cs -> src/ADAL.CommonWinRT/CryptographyHelper.cs
+	renamed:    src/ADAL.WinRT/WinRTEncodingHelper.cs -> src/ADAL.CommonWinRT/EncodingHelper.cs
+	new file:   src/ADAL.CommonWinRT/LocalSettingsHelper.cs
+	renamed:    src/ADAL.WinRT/Logger.cs -> src/ADAL.CommonWinRT/Logger.cs
+	new file:   src/ADAL.CommonWinRT/PlatformSpecificHelper.cs
+	new file:   src/ADAL.CommonWinRT/RequestParameters.cs
+	renamed:    src/ADAL.WinRT/StorageFileEventListener.cs -> src/ADAL.CommonWinRT/StorageFileEventListener.cs
+	new file:   src/ADAL.CommonWinRT/TokenCache.cs
+	modified:   src/ADAL.NET.WindowsForms/BrowserDialogFactory.cs
+	modified:   src/ADAL.NET.WindowsForms/CustomWebBrowser.cs
+	modified:   src/ADAL.NET.WindowsForms/InteractiveWebUI.cs
+	modified:   src/ADAL.NET.WindowsForms/SilentWebUI.cs
+	modified:   src/ADAL.NET.WindowsForms/SilentWindowsFormsAuthenticationDialog.cs
+	modified:   src/ADAL.NET.WindowsForms/WinFormWebAuthenticationDialog.cs
+	modified:   src/ADAL.NET.WindowsForms/WindowsFormsWebAuthenticationDialogBase.cs
+	modified:   src/ADAL.NET/ADAL.NET.csproj
+	new file:   src/ADAL.NET/AcquireTokenByAuthorizationCodeHandler.cs
+	new file:   src/ADAL.NET/AcquireTokenForClientHandler.cs
+	new file:   src/ADAL.NET/AcquireTokenInteractiveHandler.cs
+	new file:   src/ADAL.NET/AcquireTokenOnBehalfHandler.cs
+	modified:   src/ADAL.NET/AuthenticationContext.cs
+	modified:   src/ADAL.NET/AuthenticationResult.cs
+	modified:   src/ADAL.NET/ClientAssertion.cs
+	renamed:    src/ADAL.NET/X509CertificateCredential.cs -> src/ADAL.NET/ClientAssertionCertificate.cs
+	modified:   src/ADAL.NET/ClientKey.cs
+	modified:   src/ADAL.NET/CryptographyHelper.cs
+	modified:   src/ADAL.NET/JsonWebToken.cs
+	modified:   src/ADAL.NET/JsonWebTokenConstants.cs
+	modified:   src/ADAL.NET/Logger.cs
+	deleted:    src/ADAL.NET/OAuth2MessageHelper.cs
+	deleted:    src/ADAL.NET/OAuth2Request.cs
+	modified:   src/ADAL.NET/PlatformSpecificHelper.cs
+	new file:   src/ADAL.NET/RequestParameters.cs
+	modified:   src/ADAL.NET/StaTaskScheduler.cs
+	new file:   src/ADAL.NET/UserCredential.cs
+	modified:   src/ADAL.NET/Web/WebUIFactory.cs
+	new file:   src/ADAL.WinPhone/ADAL.WinPhone.csproj
+	new file:   src/ADAL.WinPhone/AcquireTokenInteractiveHandler.cs
+	new file:   src/ADAL.WinPhone/AuthenticationContext.cs
+	renamed:    src/ADAL.NET/FxcopSupressions.cs -> src/ADAL.WinPhone/IWebUIFactory.cs
+	new file:   src/ADAL.WinPhone/Properties/AssemblyInfo.cs
+	new file:   src/ADAL.WinPhone/WebUI.cs
+	renamed:    src/ADAL.WinRT/RegexUtilities.cs -> src/ADAL.WinPhone/WebUIFactory.cs
+	modified:   src/ADAL.WinRT/ADAL.WinRT.csproj
+	new file:   src/ADAL.WinRT/AcquireTokenInteractiveHandler.cs
+	modified:   src/ADAL.WinRT/AuthenticationContext.cs
+	deleted:    src/ADAL.WinRT/DefaultTokenCacheStore.cs
+	deleted:    src/ADAL.WinRT/LocalSettingsHelper.cs
+	deleted:    src/ADAL.WinRT/OAuth2Request.cs
+	modified:   src/ADAL.WinRT/PlatformSpecificHelper.cs
+	new file:   src/ADAL.WinRT/UserCredential.cs
+	modified:   src/ADAL.WinRT/WebUI.cs
+

@@ -28,8 +28,10 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             this.CallSync = callSync;
         }
 
-        public Guid CorrelationId { get; private set; }
+        public Guid CorrelationId { get; set; }
 
         public bool CallSync { get; private set; }
+
+        public AuthorityType AuthorityType { get; internal set; }
     }
 }
