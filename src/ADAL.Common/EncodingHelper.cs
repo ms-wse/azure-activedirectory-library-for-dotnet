@@ -148,6 +148,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             }
         }
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         internal static string Base64Encode(string input)
         {
             string encodedString = String.Empty;
@@ -159,6 +160,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return encodedString;
         }
 
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")] 
         internal static string Base64Decode(string encodedString)
         {
             string output = null;
